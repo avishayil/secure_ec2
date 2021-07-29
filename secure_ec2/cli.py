@@ -1,5 +1,4 @@
 """Console script for secure_ec2."""
-import logging
 import os
 import sys
 
@@ -8,8 +7,6 @@ from PyInquirer import Token, ValidationError, Validator, prompt, style_from_dic
 
 from secure_ec2.secure_ec2 import main_
 from secure_ec2.src.api import get_key_pairs
-
-logger = logging.getLogger(__name__)
 
 style = style_from_dict(
     {

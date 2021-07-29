@@ -21,6 +21,7 @@ def create_ssm_instance_profile(profile: str, region: str) -> str:
     iam_client = get_boto3_client(region=region, profile=profile, service="iam")
     try:
         with Halo(text="Creating IAM role", spinner="dots"):
+            logger.debug("Creating IAM Role")
             create_role_response = iam_client.create_role(
                 RoleName=SSM_ROLE_NAME,
                 AssumeRolePolicyDocument=json.dumps(EC2_TRUST_RELATIONSHIP),
@@ -28,15 +29,18 @@ def create_ssm_instance_profile(profile: str, region: str) -> str:
             )
 
         with Halo(text="Attaching SSM policy to role", spinner="dots"):
+            logger.debug("Attaching SSM policy to role")
             iam_client.attach_role_policy(
                 RoleName=create_role_response["Role"]["RoleName"],
                 PolicyArn="arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
             )
 
         with Halo(text="Creating instance profile", spinner="dots"):
+            logger.debug("Creating instance profile")
             iam_client.create_instance_profile(InstanceProfileName=SSM_ROLE_NAME)
 
         with Halo(text="Attaching instance profile to IAM role", spinner="dots"):
+            logger.debug("Attaching instance profile to IAM role")
             iam_client.add_role_to_instance_profile(
                 InstanceProfileName=SSM_ROLE_NAME, RoleName=SSM_ROLE_NAME
             )
@@ -44,6 +48,7 @@ def create_ssm_instance_profile(profile: str, region: str) -> str:
 
     except botocore.exceptions.ClientError as error:
         if error.response["Error"]["Code"] != "EntityAlreadyExists":
+            logger.error(str(error))
             raise error
         else:
             return SSM_ROLE_NAME
@@ -53,6 +58,7 @@ def get_key_pairs(profile: str, region: str) -> list:
     ec2_client = get_boto3_client(region=region, profile=profile, service="ec2")
     key_pair_list = []
     with Halo(text="Getting keypairs", spinner="dots"):
+        logger.debug("Getting keypairs")
         try:
             describe_key_pairs_response = ec2_client.describe_key_pairs()
         except botocore.exceptions.ClientError as error:
@@ -65,6 +71,7 @@ def get_key_pairs(profile: str, region: str) -> list:
 def get_subnet_id(profile: str, region: str) -> str:
     ec2_client = get_boto3_client(region=region, profile=profile, service="ec2")
     with Halo(text="Getting subnet", spinner="dots"):
+        logger.debug("Getting subnet")
         describe_subnets_response = ec2_client.describe_subnets()
         return describe_subnets_response["Subnets"][-1]["SubnetId"]
 
@@ -72,6 +79,7 @@ def get_subnet_id(profile: str, region: str) -> str:
 def get_default_vpc(profile: str, region: str) -> str:
     ec2_client = get_boto3_client(region=region, profile=profile, service="ec2")
     with Halo(text="Looking for default VPC", spinner="dots"):
+        logger.debug("Looking for default VPC")
         vpcs_response = ec2_client.describe_vpcs(
             Filters=[
                 {"Name": "isDefault", "Values": ["true"]},
@@ -85,7 +93,9 @@ def create_security_group(vpc_id: str, os_type: str, profile: str, region: str) 
     security_group_name = f"{get_username()}-sg"
 
     with Halo(text="Creating security group", spinner="dots"):
+        logger.debug("Creating security group")
         try:
+            logger.debug("Describing current security groups")
             describe_security_groups_response = ec2_client.describe_security_groups(
                 GroupNames=[
                     security_group_name,
@@ -96,6 +106,7 @@ def create_security_group(vpc_id: str, os_type: str, profile: str, region: str) 
                 "GroupId"
             ]
             try:
+                logger.debug("Authorizing ingress rule")
                 ec2_client.authorize_security_group_ingress(
                     GroupId=security_group_id,
                     IpPermissions=[
@@ -115,12 +126,14 @@ def create_security_group(vpc_id: str, os_type: str, profile: str, region: str) 
 
             except botocore.exceptions.ClientError as error:
                 if error.response["Error"]["Code"] != "InvalidPermission.Duplicate":
+                    logger.error(str(error))
                     raise error
 
             return security_group_id
         except botocore.exceptions.ClientError as error:
             if error.response["Error"]["Code"] == "InvalidGroup.NotFound":
                 try:
+                    logger.debug("Trying to create new security group")
                     create_security_group_response = ec2_client.create_security_group(
                         Description=f"Security group allowing access from {get_username()} laptop",
                         GroupName=security_group_name,
@@ -128,8 +141,10 @@ def create_security_group(vpc_id: str, os_type: str, profile: str, region: str) 
                     )
                     return create_security_group_response["GroupId"]
                 except botocore.exceptions.ClientError as error:
+                    logger.error(str(error))
                     raise error
             else:
+                logger.error(str(error))
                 raise error
 
 
@@ -138,6 +153,7 @@ def get_latest_ami(os_type: str, profile: str, region: str) -> str:
     os_regex = get_os_regex(os_type=os_type)
 
     with Halo(text=f"Getting latest {os_type.lower()} AMI", spinner="dots"):
+        logger.debug(f"Getting latest {os_type.lower()} AMI")
         response = ec2_client.describe_images(
             Filters=[
                 {
@@ -156,6 +172,7 @@ def get_latest_ami(os_type: str, profile: str, region: str) -> str:
         )
 
         # Sort on Creation date Desc
+        logger.debug("Sorting AMI results")
         image_details = sorted(
             response["Images"], key=itemgetter("CreationDate"), reverse=True
         )
@@ -179,6 +196,7 @@ def provision_ec2_instance(
     username = get_username()
     if keypair == "None":
         with Halo(text="Provisioning instance with SSM access", spinner="dots"):
+            logger.debug("Provisioning instance with SSM access")
             ec2_response = ec2_client.run_instances(
                 BlockDeviceMappings=[
                     {
@@ -215,21 +233,28 @@ def provision_ec2_instance(
             )
             instance_id = ec2_response["Instances"][0]["InstanceId"]
         with Halo(text="Waiting for instance to be in running state", spinner="dots"):
+            logger.debug("Waiting for instance to be in running state")
             ec2_resource.Instance(instance_id).wait_until_running()
 
         with Halo(
             text="Creating SSM instance profile and associating with the instance",
             spinner="dots",
         ):
+            logger.debug(
+                "Creating SSM instance profile and associating with the instance"
+            )
+            logger.debug("Creating SSM instance profile")
             instance_profile = create_ssm_instance_profile(
                 profile=profile, region=region
             )
+            logger.debug("Associating instance profile with the instance")
             ec2_client.associate_iam_instance_profile(
                 IamInstanceProfile={"Name": instance_profile}, InstanceId=instance_id
             )
 
     else:
         with Halo(text="Provisioning instance with KeyPair access", spinner="dots"):
+            logger.debug("Provisioning instance with KeyPair access")
             ec2_response = ec2_client.run_instances(
                 BlockDeviceMappings=[
                     {
@@ -268,6 +293,7 @@ def provision_ec2_instance(
             instance_id = ec2_response["Instances"][0]["InstanceId"]
 
         with Halo(text="Waiting for instance to be in running state", spinner="dots"):
+            logger.debug("Waiting for instance to be in running state")
             ec2_resource.Instance(instance_id).wait_until_running()
 
     return instance_id

@@ -12,7 +12,7 @@ Secure EC2
 .. image:: https://readthedocs.org/projects/secure-ec2/badge/?version=latest
         :target: https://secure-ec2.readthedocs.io/en/latest/?version=latest
         :alt: Documentation Status
-        
+
 .. image:: coverage.svg
         :target: https://coverage.readthedocs.io/
         :alt: Coverage
