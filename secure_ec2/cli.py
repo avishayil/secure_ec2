@@ -1,12 +1,15 @@
 """Console script for secure_ec2."""
+import logging
+import os
 import sys
 
 import click
 from PyInquirer import Token, ValidationError, Validator, prompt, style_from_dict
 
 from secure_ec2.secure_ec2 import main_
-from secure_ec2.src.aws import get_key_pairs
-from secure_ec2.src.utils import init_logger
+from secure_ec2.src.api import get_key_pairs
+
+logger = logging.getLogger(__name__)
 
 style = style_from_dict(
     {
@@ -31,20 +34,20 @@ class NumberValidator(Validator):
 
 @click.command()
 @click.option(
-    "-p", "--os_type", is_flag=False, help="Operating system (Linux / Windows)"
+    "-t", "--os_type", is_flag=False, help="Operating system (Linux / Windows)"
 )
 @click.option(
-    "-s",
+    "-n",
     "--num_instances",
     is_flag=False,
     help="Number of instances to provision securely",
     type=click.INT,
 )
 @click.option(
-    "-v", "--keypair", is_flag=False, help="Keypair name to launch the instance with"
+    "-k", "--keypair", is_flag=False, help="Keypair name to launch the instance with"
 )
 @click.option(
-    "-t",
+    "-i",
     "--instance_type",
     is_flag=False,
     help="Instance type, affects compute & networking performance",
@@ -52,14 +55,14 @@ class NumberValidator(Validator):
 def main(os_type: str, num_instances: str, keypair: str, instance_type: str):
     """Tool to launch EC2 instances with secure parameters"""
 
-    init_logger()
-
     if os_type and num_instances and keypair and instance_type:
         main_(
             os_type=os_type,
             num_instances=num_instances,
             keypair=keypair,
             instance_type=instance_type,
+            profile=os.environ.get("AWS_PROFILE", "default"),
+            region=os.environ.get("AWS_DEFAULT_REGION", "us-east-1"),
         )
         click.echo("Instance created successfully")
         sys.exit(0)
@@ -99,6 +102,8 @@ def main(os_type: str, num_instances: str, keypair: str, instance_type: str):
                 num_instances=answers.get("num_instances"),
                 keypair=answers.get("keypair"),
                 instance_type=answers.get("instance_type"),
+                profile=os.environ.get("AWS_PROFILE", "default"),
+                region=os.environ.get("AWS_DEFAULT_REGION", "us-east-1"),
             )
             click.echo("Instance created successfully")
             sys.exit(0)

@@ -20,10 +20,15 @@ requirements = [
 
 test_requirements = [
     "pytest>=3",
+    "pytest-cov>=2.12",
     "bandit>=1.7.0",
     "black>=21.7b0",
     "isort>=5.9.2",
     "flake8>=3.9.2",
+    "moto==2.2.0",
+    "coverage==5.5",
+    "coverage-badge==1.0.1",
+    "pre-commit>=2.13.0",
 ]
 
 setup(
