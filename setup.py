@@ -65,6 +65,6 @@ setup(
         "develop": test_requirements,
     },
     url="https://github.com/avishayil/secure_ec2",
-    version="0.0.3",
+    version="0.0.4",
     zip_safe=False,
 )
