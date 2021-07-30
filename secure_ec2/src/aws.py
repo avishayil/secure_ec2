@@ -5,6 +5,9 @@ import boto3
 from botocore.config import Config
 
 logger = logging.getLogger(__name__)
+fh = logging.FileHandler("debug.log")
+fh.setLevel(logging.DEBUG)
+logger.addHandler(fh)
 
 
 def get_boto3_client(

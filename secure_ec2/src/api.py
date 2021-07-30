@@ -15,6 +15,9 @@ from secure_ec2.src.helpers import (
 )
 
 logger = logging.getLogger(__name__)
+fh = logging.FileHandler("debug.log")
+fh.setLevel(logging.DEBUG)
+logger.addHandler(fh)
 
 
 def create_ssm_instance_profile(profile: str, region: str) -> str:
