@@ -29,6 +29,7 @@ test_requirements = [
     "coverage==5.5",
     "coverage-badge==1.0.1",
     "pre-commit>=2.13.0",
+    "bump2version>=0.5.4",
 ]
 
 setup(
