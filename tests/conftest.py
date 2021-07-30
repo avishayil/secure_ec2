@@ -16,7 +16,7 @@ from secure_ec2.src.aws import get_boto3_client, get_boto3_resource  # noqa: E40
 def ec2_client_stub():
     with mock_ec2():
         ec2_client = get_boto3_client(
-            service="ec2", profile="default", region="us-east-1"
+            service="ec2",
         )
         yield ec2_client
 
@@ -25,7 +25,7 @@ def ec2_client_stub():
 def ec2_resource_stub():
     with mock_ec2():
         ec2_resource = get_boto3_resource(
-            service="ec2", profile="default", region="us-east-1"
+            service="ec2",
         )
         yield ec2_resource
 
@@ -34,6 +34,6 @@ def ec2_resource_stub():
 def iam_client_stub():
     with mock_iam():
         iam_client = get_boto3_client(
-            service="iam", profile="default", region="us-east-1"
+            service="iam",
         )
         yield iam_client
