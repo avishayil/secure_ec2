@@ -10,6 +10,4 @@ def test_cli(ec2_client_stub, ec2_resource_stub):
         ["-t", "Demo", "-n", "1", "-k", "demo-kp", "-i", "t2.micro"],
     )
 
-    print(result)
-
     assert result.exit_code == 0

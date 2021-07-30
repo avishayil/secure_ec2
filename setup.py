@@ -11,7 +11,7 @@ with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
 requirements = [
-    "Click>=7.0",
+    "Click==8.0.1",
     "boto3==1.17.109",
     "PyInquirer==1.0.3",
     "requests==2.25.1",
@@ -25,10 +25,11 @@ test_requirements = [
     "black>=21.7b0",
     "isort>=5.9.2",
     "flake8>=3.9.2",
-    "moto==2.2.0",
-    "coverage==5.5",
-    "coverage-badge==1.0.1",
+    "moto>=2.2.0",
+    "coverage>=5.5",
+    "coverage-badge>=1.0.1",
     "pre-commit>=2.13.0",
+    "bump2version>=0.5.4",
 ]
 
 setup(
@@ -64,6 +65,6 @@ setup(
         "develop": test_requirements,
     },
     url="https://github.com/avishayil/secure_ec2",
-    version="0.0.1",
+    version="0.0.3",
     zip_safe=False,
 )

@@ -52,15 +52,17 @@ class NumberValidator(Validator):
     "-p",
     "--profile",
     required=False,
+    default=None,
     is_flag=False,
-    help="AWS profile name to use. If empty, use AWS_PROFILE environment variable value",
+    help="AWS profile name to use",
 )
 @click.option(
     "-r",
     "--region",
     required=False,
+    default="us-east-1",
     is_flag=False,
-    help="AWS region to use. If empty, use AWS_DEFAULT_REGION environment variable value",
+    help="AWS region to use",
 )
 def main(
     os_type: str,
@@ -71,7 +73,6 @@ def main(
     region: str,
 ):
     """Tool to launch EC2 instances with secure parameters"""
-
     if os_type and num_instances and keypair and instance_type:
         main_(
             os_type=os_type,
@@ -113,6 +114,7 @@ def main(
             },
         ]
         answers = prompt(questions, style=style)
+
         if len(answers) > 0:
             main_(
                 os_type=answers.get("os_type"),
@@ -120,7 +122,7 @@ def main(
                 keypair=answers.get("keypair"),
                 instance_type=answers.get("instance_type"),
                 profile=profile,
-                region=profile,
+                region=region,
             )
             click.echo("Instance created successfully")
             sys.exit(0)
