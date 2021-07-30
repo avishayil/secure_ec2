@@ -1,8 +1,6 @@
 name: test
 
-on:
-  push:
-    branches: [master]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -24,3 +22,8 @@ jobs:
       - name: Run tests
         run: |
           tox
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage-report
+          path: output/htmlcov/

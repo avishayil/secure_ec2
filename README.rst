@@ -6,12 +6,16 @@ Secure EC2
 .. image:: https://img.shields.io/pypi/v/secure_ec2.svg
         :target: https://pypi.python.org/pypi/secure_ec2
 
-.. image:: https://github.com/avishayil/secure_ec2/actions/workflows/test/badge.svg
-        :target: https://github.com/avishayil/secure_ec2/actions/workflows/test
+.. image:: https://github.com/avishayil/secure_ec2/actions/workflows/test.yml/badge.svg
+        :target: https://github.com/avishayil/secure_ec2/actions/workflows/test.yml
 
 .. image:: https://readthedocs.org/projects/secure-ec2/badge/?version=latest
         :target: https://secure-ec2.readthedocs.io/en/latest/?version=latest
         :alt: Documentation Status
+
+.. image:: coverage.svg
+        :target: https://coverage.readthedocs.io/
+        :alt: Coverage
 
 A project that helps you to provision EC2 instance securely
 
