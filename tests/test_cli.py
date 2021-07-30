@@ -11,10 +11,3 @@ def test_cli(ec2_client_stub, ec2_resource_stub):
     )
 
     assert result.exit_code == 0
-
-
-def test_cli_wizard(ec2_client_stub, ec2_resource_stub):
-    runner = CliRunner()
-    result = runner.invoke(main)
-
-    assert "Getting keypairs" in result.stdout
