@@ -20,7 +20,7 @@ fh.setLevel(logging.DEBUG)
 logger.addHandler(fh)
 
 
-def create_ssm_instance_profile(profile: str, region: str) -> str:
+def create_ssm_instance_profile(profile: str = None, region: str = "us-east-1") -> str:
     iam_client = get_boto3_client(region=region, profile=profile, service="iam")
     try:
         with Halo(text="Creating IAM role", spinner="dots"):
@@ -57,7 +57,7 @@ def create_ssm_instance_profile(profile: str, region: str) -> str:
             return SSM_ROLE_NAME
 
 
-def get_key_pairs(profile: str, region: str) -> list:
+def get_key_pairs(profile: str = None, region: str = "us-east-1") -> list:
     ec2_client = get_boto3_client(region=region, profile=profile, service="ec2")
     key_pair_list = []
     with Halo(text="Getting keypairs", spinner="dots"):
@@ -71,7 +71,7 @@ def get_key_pairs(profile: str, region: str) -> list:
     return key_pair_list
 
 
-def get_subnet_id(profile: str, region: str) -> str:
+def get_subnet_id(profile: str = None, region: str = "us-east-1") -> str:
     ec2_client = get_boto3_client(region=region, profile=profile, service="ec2")
     with Halo(text="Getting subnet", spinner="dots"):
         logger.debug("Getting subnet")
@@ -79,7 +79,7 @@ def get_subnet_id(profile: str, region: str) -> str:
         return describe_subnets_response["Subnets"][-1]["SubnetId"]
 
 
-def get_default_vpc(profile: str, region: str) -> str:
+def get_default_vpc(profile: str = None, region: str = "us-east-1") -> str:
     ec2_client = get_boto3_client(region=region, profile=profile, service="ec2")
     with Halo(text="Looking for default VPC", spinner="dots"):
         logger.debug("Looking for default VPC")
@@ -91,7 +91,9 @@ def get_default_vpc(profile: str, region: str) -> str:
         return vpcs_response["Vpcs"][0]["VpcId"]
 
 
-def create_security_group(vpc_id: str, os_type: str, profile: str, region: str) -> str:
+def create_security_group(
+    vpc_id: str, os_type: str, profile: str = None, region: str = "us-east-1"
+) -> str:
     ec2_client = get_boto3_client(region=region, profile=profile, service="ec2")
     security_group_name = f"{get_username()}-sg"
 
@@ -151,7 +153,7 @@ def create_security_group(vpc_id: str, os_type: str, profile: str, region: str) 
                 raise error
 
 
-def get_latest_ami(os_type: str, profile: str, region: str) -> str:
+def get_latest_ami(os_type: str, profile: str = None, region: str = "us-east-1") -> str:
     ec2_client = get_boto3_client(region=region, profile=profile, service="ec2")
     os_regex = get_os_regex(os_type=os_type)
 
@@ -191,8 +193,8 @@ def provision_ec2_instance(
     keypair: str,
     instance_type: str,
     num_instances: int,
-    profile: str,
-    region: str,
+    profile: str = None,
+    region: str = "us-east-1",
 ) -> str:
     ec2_client = get_boto3_client(region=region, profile=profile, service="ec2")
     ec2_resource = get_boto3_resource(region=region, profile=profile, service="ec2")
