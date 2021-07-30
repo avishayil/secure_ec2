@@ -13,8 +13,8 @@ def main_(
     num_instances: int,
     keypair: str,
     instance_type: str,
-    profile: str,
-    region: str,
+    profile: str = None,
+    region: str = "us-east-1",
 ) -> None:
     image_id = get_latest_ami(os_type=os_type, profile=profile, region=region)
     vpc_id = get_default_vpc(profile=profile, region=region)
@@ -22,7 +22,7 @@ def main_(
     security_group_id = create_security_group(
         vpc_id=vpc_id, os_type=os_type, profile=profile, region=region
     )
-    provision_ec2_instance(
+    instance_id = provision_ec2_instance(
         image_id=image_id,
         subnet_id=subnet_id,
         security_group_id=security_group_id,
@@ -32,3 +32,4 @@ def main_(
         profile=profile,
         region=region,
     )
+    return instance_id
