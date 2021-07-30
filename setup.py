@@ -11,7 +11,7 @@ with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
 requirements = [
-    "Click==7.0",
+    "Click==8.0.1",
     "boto3==1.17.109",
     "PyInquirer==1.0.3",
     "requests==2.25.1",
