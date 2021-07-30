@@ -1,5 +1,4 @@
 """Console script for secure_ec2."""
-import os
 import sys
 
 import click
@@ -52,12 +51,14 @@ class NumberValidator(Validator):
 @click.option(
     "-p",
     "--profile",
+    required=False,
     is_flag=False,
     help="AWS profile name to use. If empty, use AWS_PROFILE environment variable value",
 )
 @click.option(
     "-r",
     "--region",
+    required=False,
     is_flag=False,
     help="AWS region to use. If empty, use AWS_DEFAULT_REGION environment variable value",
 )
@@ -66,8 +67,8 @@ def main(
     num_instances: str,
     keypair: str,
     instance_type: str,
-    profile=os.environ.get("AWS_PROFILE", "default"),
-    region=os.environ.get("AWS_DEFAULT_REGION", "us-east-1"),
+    profile: str,
+    region: str,
 ):
     """Tool to launch EC2 instances with secure parameters"""
 
@@ -77,8 +78,8 @@ def main(
             num_instances=num_instances,
             keypair=keypair,
             instance_type=instance_type,
-            profile=os.environ.get("AWS_PROFILE", "default"),
-            region=os.environ.get("AWS_DEFAULT_REGION", "us-east-1"),
+            profile=profile,
+            region=region,
         )
         click.echo("Instance created successfully")
         sys.exit(0)
@@ -118,8 +119,8 @@ def main(
                 num_instances=answers.get("num_instances"),
                 keypair=answers.get("keypair"),
                 instance_type=answers.get("instance_type"),
-                profile=os.environ.get("AWS_PROFILE", "default"),
-                region=os.environ.get("AWS_DEFAULT_REGION", "us-east-1"),
+                profile=profile,
+                region=profile,
             )
             click.echo("Instance created successfully")
             sys.exit(0)

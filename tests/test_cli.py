@@ -7,20 +7,7 @@ def test_cli(ec2_client_stub, ec2_resource_stub):
     runner = CliRunner()
     result = runner.invoke(
         main,
-        [
-            "-t",
-            "Demo",
-            "-n",
-            "1",
-            "-k",
-            "demo-kp",
-            "-i",
-            "t2.micro",
-            "-p",
-            "default",
-            "-r",
-            "us-east-1",
-        ],
+        ["-t", "Demo", "-n", "1", "-k", "demo-kp", "-i", "t2.micro"],
     )
 
     print(result)
