@@ -26,25 +26,37 @@ A project that helps you to provision EC2 instance securely
 
 TL;DR
 --------
-Installation:
+**Installation:**
 
 .. code-block:: bash
 
     § pip install secure_ec2
 
-Wizard Usage:
+**Wizard Usage:**
 
 .. code-block:: bash
 
   § secure_ec2
 
-Command Line Usage:
+**Command Line Usage:**
 
 .. code-block:: bash
 
   § secure_ec2 --os_type Linux --num_instances 3 --keypair None --instance_type t2.micro # Session Manager access
   § secure_ec2 --os_type Windows --num_instances 1 --keypair demo-kp --instance_type t2.micro # SSH access with KeyPair
 
+**CLI Configuration Parameters:**
+
+===========================  ======== ============ ===========================================================
+  Configuration Parameter      Type     Required     Description
+===========================  ======== ============ ===========================================================
+-t --os_type                 str      True         Operating system (Linux / Windows)
+-n --num_instances           int      True         Number of instances to provision securely
+-k --keypair                 str      True         Keypair name to launch the instance with
+-i --instance_type           str      True         Instance type, affects compute & networking performance
+-p --profile                 str      False        AWS profile name to use
+-r --region                  str      False        AWS region to use
+===========================  ======== ============ ===========================================================
 
 Features
 --------
