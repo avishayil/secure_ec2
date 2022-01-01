@@ -73,7 +73,9 @@ def main(
     region: str,
 ):
     """Tool to launch EC2 instances with secure parameters"""
-    if os_type and num_instances and keypair and instance_type:
+    if (
+        os_type and num_instances and keypair and instance_type
+    ):  # CLI parameters trigger
         main_(
             os_type=os_type,
             num_instances=num_instances,
@@ -82,13 +84,12 @@ def main(
             profile=profile,
             region=region,
         )
-        click.echo("Instance created successfully")
         sys.exit(0)
-    else:
+    else:  # Wizard trigger
         try:
             keypairs = get_key_pairs(profile=profile, region=region)
-        except Exception:
-            click.echo("Error getting key pairs")
+        except Exception as e:
+            click.echo(f"Error getting key pairs: {e}")
             sys.exit(1)
 
         questions = [
@@ -102,7 +103,7 @@ def main(
                 "type": "rawlist",
                 "name": "keypair",
                 "message": "KeyPair",
-                "choices": keypairs + ["None"],
+                "choices": keypairs + ["None (Session Manager)"],
             },
             {"type": "input", "name": "instance_type", "message": "Instance Type"},
             {
@@ -124,7 +125,6 @@ def main(
                 profile=profile,
                 region=region,
             )
-            click.echo("Instance created successfully")
             sys.exit(0)
         sys.exit(1)
 

@@ -3,9 +3,16 @@ import logging
 from operator import itemgetter
 
 import botocore
+import click
+import pyperclip
 from halo import Halo
 
-from secure_ec2.src.aws import get_boto3_client, get_boto3_resource
+from secure_ec2.src.aws import (
+    construct_console_connect_url,
+    construct_session_manager_url,
+    get_boto3_client,
+    get_boto3_resource,
+)
 from secure_ec2.src.constants import EC2_TRUST_RELATIONSHIP, SSM_ROLE_NAME
 from secure_ec2.src.helpers import (
     get_connection_port,
@@ -199,7 +206,7 @@ def provision_ec2_instance(
     ec2_client = get_boto3_client(region=region, profile=profile, service="ec2")
     ec2_resource = get_boto3_resource(region=region, profile=profile, service="ec2")
     username = get_username()
-    if keypair == "None":
+    if keypair == "None (Session Manager)":
         with Halo(text="Provisioning instance with SSM access", spinner="dots"):
             logger.debug("Provisioning instance with SSM access")
             ec2_response = ec2_client.run_instances(
@@ -256,6 +263,12 @@ def provision_ec2_instance(
             ec2_client.associate_iam_instance_profile(
                 IamInstanceProfile={"Name": instance_profile}, InstanceId=instance_id
             )
+        pyperclip.copy(
+            construct_session_manager_url(instance_id=instance_id, region=region)
+        )
+        click.echo(
+            f"Instance {instance_id} provisioned successfully. Connect securely using the following link (Copied to your clipboard):\r\n{construct_session_manager_url(instance_id=instance_id, region=region)}"  # noqa: E501
+        )
 
     else:
         with Halo(text="Provisioning instance with KeyPair access", spinner="dots"):
@@ -300,5 +313,11 @@ def provision_ec2_instance(
         with Halo(text="Waiting for instance to be in running state", spinner="dots"):
             logger.debug("Waiting for instance to be in running state")
             ec2_resource.Instance(instance_id).wait_until_running()
+        pyperclip.copy(
+            construct_console_connect_url(instance_id=instance_id, region=region)
+        )
+        click.echo(
+            f"Instance {instance_id} provisioned successfully. Connect securely using SSH / RDP and your KeyPair (Copied to your clipboard):\r\n{construct_console_connect_url(instance_id=instance_id, region=region)}"  # noqa: E501
+        )
 
     return instance_id
