@@ -15,7 +15,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get install xsel xclip -y # for pyperclip support on ci
-          python -m pip install tox-travis pre-commit gtk PyQt4 --user
+          python -m pip install tox-travis pre-commit --user
           pre-commit install
       - name: Run pre-commit
         run: |
