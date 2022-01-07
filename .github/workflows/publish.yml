@@ -17,6 +17,7 @@ jobs:
           python-version: 3.8
       - name: Install dependencies
         run: |
+          sudo apt-get install xsel # for pyperclip support on ci
           python -m pip install tox-travis pre-commit --user
           pre-commit install
       - name: Run pre-commit
