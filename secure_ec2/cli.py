@@ -49,6 +49,12 @@ class NumberValidator(Validator):
     help="Instance type, affects compute & networking performance",
 )
 @click.option(
+    "-c",
+    "--copy",
+    is_flag=True,
+    help="Copy secure connection URL to clipboard",
+)
+@click.option(
     "-p",
     "--profile",
     required=False,

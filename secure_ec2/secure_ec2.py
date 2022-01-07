@@ -13,6 +13,7 @@ def main_(
     num_instances: int,
     keypair: str,
     instance_type: str,
+    copy: bool = True,
     profile: str = None,
     region: str = "us-east-1",
 ) -> None:
@@ -31,5 +32,6 @@ def main_(
         num_instances=num_instances,
         profile=profile,
         region=region,
+        copy=copy,
     )
     return instance_id

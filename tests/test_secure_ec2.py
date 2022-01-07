@@ -7,5 +7,6 @@ def test_main_(ec2_client_stub, ec2_resource_stub):
         num_instances=1,
         keypair="demo-kp",
         instance_type="t2.micro",
+        copy=False,
     )
     assert isinstance(main_response, str)
