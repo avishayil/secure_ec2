@@ -50,7 +50,7 @@ class NumberValidator(Validator):
 )
 @click.option(
     "-c",
-    "--copy",
+    "--clip",
     is_flag=True,
     help="Copy secure connection URL to clipboard",
 )
@@ -75,6 +75,7 @@ def main(
     num_instances: str,
     keypair: str,
     instance_type: str,
+    clip: bool,
     profile: str,
     region: str,
 ):
@@ -87,6 +88,7 @@ def main(
             num_instances=num_instances,
             keypair=keypair,
             instance_type=instance_type,
+            clip=clip,
             profile=profile,
             region=region,
         )

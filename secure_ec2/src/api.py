@@ -200,7 +200,7 @@ def provision_ec2_instance(
     keypair: str,
     instance_type: str,
     num_instances: int,
-    copy: bool = True,
+    clip: bool = True,
     profile: str = None,
     region: str = "us-east-1",
 ) -> str:
@@ -265,7 +265,7 @@ def provision_ec2_instance(
                 IamInstanceProfile={"Name": instance_profile}, InstanceId=instance_id
             )
         click.echo(f"Instance {instance_id} provisioned successfully.")
-        if copy:
+        if clip:
             pyperclip.copy(
                 construct_session_manager_url(instance_id=instance_id, region=region)
             )
@@ -316,7 +316,7 @@ def provision_ec2_instance(
             logger.debug("Waiting for instance to be in running state")
             ec2_resource.Instance(instance_id).wait_until_running()
         click.echo(f"Instance {instance_id} provisioned successfully.")
-        if copy:
+        if clip:
             pyperclip.copy(
                 construct_session_manager_url(instance_id=instance_id, region=region)
             )
