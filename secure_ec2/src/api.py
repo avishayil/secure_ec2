@@ -264,14 +264,14 @@ def provision_ec2_instance(
             ec2_client.associate_iam_instance_profile(
                 IamInstanceProfile={"Name": instance_profile}, InstanceId=instance_id
             )
-        click.echo(f"Instance {instance_id} provisioned successfully.")
+        click.echo(
+            f"Instance {instance_id} provisioned successfully. Connect securely using the following link:\r\n{construct_session_manager_url(instance_id=instance_id, region=region)}"  # noqa: E501"
+        )
         if clip:
             pyperclip.copy(
                 construct_session_manager_url(instance_id=instance_id, region=region)
             )
-            click.echo(
-                f"Connect securely using the following link (Copied to your clipboard):\r\n{construct_session_manager_url(instance_id=instance_id, region=region)}"  # noqa: E501
-            )
+            click.echo("The link is on your clipboard")
     else:
         with Halo(text="Provisioning instance with KeyPair access", spinner="dots"):
             logger.debug("Provisioning instance with KeyPair access")
@@ -315,13 +315,13 @@ def provision_ec2_instance(
         with Halo(text="Waiting for instance to be in running state", spinner="dots"):
             logger.debug("Waiting for instance to be in running state")
             ec2_resource.Instance(instance_id).wait_until_running()
-        click.echo(f"Instance {instance_id} provisioned successfully.")
+        click.echo(
+            f"Instance {instance_id} provisioned successfully. Connect securely using SSH / RDP and your KeyPair:\r\n{construct_console_connect_url(instance_id=instance_id, region=region)}"  # noqa: E501
+        )
         if clip:
             pyperclip.copy(
                 construct_session_manager_url(instance_id=instance_id, region=region)
             )
-            click.echo(
-                f"Connect securely using SSH / RDP and your KeyPair (Copied to your clipboard):\r\n{construct_console_connect_url(instance_id=instance_id, region=region)}"  # noqa: E501
-            )
+            click.echo("The link is on your clipboard")
 
     return instance_id
