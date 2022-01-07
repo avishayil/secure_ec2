@@ -48,6 +48,7 @@ def test_provision_ec2_instance(ec2_client_stub, ec2_resource_stub):
         keypair=key_pair,
         instance_type="t2.micro",
         num_instances=1,
+        clip=False,
     )
     assert isinstance(instance_id, str)
 
