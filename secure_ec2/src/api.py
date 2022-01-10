@@ -207,7 +207,7 @@ def provision_ec2_instance(
     ec2_client = get_boto3_client(region=region, profile=profile, service="ec2")
     ec2_resource = get_boto3_resource(region=region, profile=profile, service="ec2")
     username = get_username()
-    if keypair == "None (Session Manager)":
+    if keypair == "None":
         with Halo(text="Provisioning instance with SSM access", spinner="dots"):
             logger.debug("Provisioning instance with SSM access")
             ec2_response = ec2_client.run_instances(

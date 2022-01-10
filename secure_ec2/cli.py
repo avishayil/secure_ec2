@@ -111,7 +111,7 @@ def main(
                 "type": "rawlist",
                 "name": "keypair",
                 "message": "KeyPair",
-                "choices": keypairs + ["None (Session Manager)"],
+                "choices": keypairs + ["None"],
             },
             {"type": "input", "name": "instance_type", "message": "Instance Type"},
             {
