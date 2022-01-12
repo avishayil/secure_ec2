@@ -36,7 +36,8 @@ TL;DR
 
 .. code-block:: bash
 
-  § secure_ec2
+  § secure_ec2 config # Generating secure launch configuration
+  § secure_ec2 launch # Launching instance(s) according to the launch configuration
 
 **Command Line Usage:**
 
