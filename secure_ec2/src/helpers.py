@@ -48,7 +48,7 @@ def get_os_regex(os_type: str) -> str:
     return os_regex
 
 
-def get_launch_template_name() -> str:
+def get_launch_template_name(os_type: str) -> str:
     """Build the launch template name by concatenating the username and suffix"""
     local_username = get_username()
-    return f"{local_username}-{MODULE_NAME}-{LAUNCH_TEMPLATE_SUFFIX}"
+    return f"{local_username}-{MODULE_NAME}-{os_type.lower()}-{LAUNCH_TEMPLATE_SUFFIX}"

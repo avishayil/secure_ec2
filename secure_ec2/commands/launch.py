@@ -22,6 +22,15 @@ class NumberValidator(Validator):
 
 
 @click.option(
+    "-t",
+    "--os_type",
+    type=click.Choice(["Windows", "Linux"], case_sensitive=False),
+    required=False,
+    default=None,
+    is_flag=False,
+    help="Operating System",
+)
+@click.option(
     "-n",
     "--num_instances",
     is_flag=False,
@@ -55,6 +64,7 @@ class NumberValidator(Validator):
 )
 @click.command()
 def launch(
+    os_type: str,
     num_instances: str,
     keypair: str,
     instance_type: str,
@@ -76,11 +86,17 @@ def launch(
     )
 
     keypairs = get_key_pairs(ec2_client=ec2_client)
-    launch_template = get_latest_launch_template(ec2_client=ec2_client)
+    launch_template = get_latest_launch_template(os_type=os_type, ec2_client=ec2_client)
 
     if not (num_instances and keypair and instance_type):
 
         questions = [
+            {
+                "type": "rawlist",
+                "name": "os_type",
+                "message": "What type of OS?",
+                "choices": ["Windows", "Linux"],
+            },
             {
                 "type": "input",
                 "name": "num_instances",

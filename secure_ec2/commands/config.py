@@ -5,6 +5,9 @@ from PyInquirer import Token, prompt, style_from_dict
 
 from secure_ec2.src.api import create_launch_template
 from secure_ec2.src.aws import get_boto3_client
+from secure_ec2.src.helpers import get_logger
+
+logger = get_logger()
 
 
 @click.option(
@@ -14,7 +17,7 @@ from secure_ec2.src.aws import get_boto3_client
     required=False,
     default=None,
     is_flag=False,
-    help="AWS region to use",
+    help="Operating System",
 )
 @click.option(
     "-p",
@@ -61,7 +64,7 @@ def config(profile: str, region: str, os_type: str):
         answers = prompt(questions, style=style)
 
         if len(answers) > 0:
-            print("Creating launch template with the selected configuration")
+            logger.debug("Creating launch template with the selected configuration")
             create_launch_template(
                 os_type=answers["os_type"].lower(),
                 ec2_client=ec2_client,
@@ -69,7 +72,7 @@ def config(profile: str, region: str, os_type: str):
             sys.exit(0)
         sys.exit(1)
     else:
-        print("Creating launch template with the selected configuration")
+        logger.debug("Creating launch template with the selected configuration")
         create_launch_template(
             os_type=os_type.lower(),
             ec2_client=ec2_client,

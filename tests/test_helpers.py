@@ -36,7 +36,7 @@ def test_get_os_regex():
 
 
 def test_get_launch_template_name():
-    launch_template_name = get_launch_template_name()
+    launch_template_name = get_launch_template_name(os_type="Linux")
     assert isinstance(launch_template_name, str)
 
 

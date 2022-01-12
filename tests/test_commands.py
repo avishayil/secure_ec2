@@ -59,7 +59,7 @@ def test_launch_happy_linux(ec2_client_stub):
 
     launch_result = runner.invoke(
         launch,
-        ["-n", "1", "-k", "demo-kp", "-i", "t2.micro"],
+        ["-t", "Linux", "-n", "1", "-k", "demo-kp", "-i", "t2.micro"],
     )
 
     assert launch_result.exit_code == 0
@@ -86,7 +86,7 @@ def test_launch_happy_windows(ec2_client_stub):
 
     launch_result = runner.invoke(
         launch,
-        ["-n", "1", "-k", "demo-kp", "-i", "t2.micro"],
+        ["-t", "Windows", "-n", "1", "-k", "demo-kp", "-i", "t2.micro"],
     )
 
     assert launch_result.exit_code == 0
