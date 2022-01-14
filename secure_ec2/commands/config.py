@@ -64,17 +64,25 @@ def config(profile: str, region: str, os_type: str):
         answers = prompt(questions, style=style)
 
         if len(answers) > 0:
-            logger.debug("Creating launch template with the selected configuration")
+            logger.info("Creating launch template with the selected configuration")
+            print("Creating launch template with the selected configuration")
             create_launch_template(
                 os_type=answers["os_type"].lower(),
                 ec2_client=ec2_client,
             )
+            print(
+                "Configuration completed. secure_ec2 is now ready to launch some instances!"
+            )
             sys.exit(0)
         sys.exit(1)
     else:
-        logger.debug("Creating launch template with the selected configuration")
+        logger.info("Creating launch template with the selected configuration")
+        print("Creating launch template with the selected configuration")
         create_launch_template(
             os_type=os_type.lower(),
             ec2_client=ec2_client,
+        )
+        print(
+            "Configuration completed. secure_ec2 is now ready to launch some instances!"
         )
         sys.exit(0)

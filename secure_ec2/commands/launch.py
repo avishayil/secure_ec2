@@ -9,6 +9,9 @@ from secure_ec2.src.api import (
     provision_ec2_instance,
 )
 from secure_ec2.src.aws import get_boto3_client, get_boto3_resource
+from secure_ec2.src.helpers import get_logger
+
+logger = get_logger()
 
 
 class NumberValidator(Validator):
@@ -117,6 +120,11 @@ def launch(
         )
 
         if len(answers) > 0:
+            logger.info(
+                "Provisioning secure EC2 instance with the selected configuration"
+            )
+            print("Provisioning secure EC2 instance with the selected configuration")
+
             provision_ec2_instance(
                 launch_template=launch_template,
                 num_instances=answers["num_instances"],
@@ -126,9 +134,15 @@ def launch(
                 iam_client=iam_client,
                 ec2_resource=ec2_resource,
             )
+
+            print("Secure instance provisioning completed successfully")
             sys.exit(0)
         sys.exit(1)
     else:
+
+        logger.info("Provisioning secure EC2 instance with the selected configuration")
+        print("Provisioning secure EC2 instance with the selected configuration")
+
         launch_template = get_latest_launch_template(
             os_type=os_type, ec2_client=ec2_client
         )
@@ -141,4 +155,6 @@ def launch(
             iam_client=iam_client,
             ec2_resource=ec2_resource,
         )
+
+        print("Secure instance provisioning completed successfully")
         sys.exit(0)
