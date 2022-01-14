@@ -40,7 +40,6 @@ def config(profile: str, region: str, os_type: str):
 
     ec2_client = get_boto3_client(region=region, profile=profile, service="ec2")
 
-    print(f"os_type is {os_type}")
     if not os_type:
 
         style = style_from_dict(
