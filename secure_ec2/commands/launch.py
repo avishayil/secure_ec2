@@ -86,7 +86,6 @@ def launch(
     )
 
     keypairs = get_key_pairs(ec2_client=ec2_client)
-    launch_template = get_latest_launch_template(os_type=os_type, ec2_client=ec2_client)
 
     if not (num_instances and keypair and instance_type):
 
@@ -107,12 +106,15 @@ def launch(
             {
                 "type": "rawlist",
                 "name": "keypair",
-                "message": "KeyPair",
+                "message": "Keypair",
                 "choices": keypairs + ["None"],
             },
             {"type": "input", "name": "instance_type", "message": "Instance Type"},
         ]
         answers = prompt(questions, style=style)
+        launch_template = get_latest_launch_template(
+            os_type=answers["os_type"], ec2_client=ec2_client
+        )
 
         if len(answers) > 0:
             provision_ec2_instance(
@@ -127,6 +129,9 @@ def launch(
             sys.exit(0)
         sys.exit(1)
     else:
+        launch_template = get_latest_launch_template(
+            os_type=os_type, ec2_client=ec2_client
+        )
         provision_ec2_instance(
             launch_template=launch_template,
             num_instances=num_instances,

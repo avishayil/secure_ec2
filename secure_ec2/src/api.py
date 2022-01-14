@@ -25,54 +25,50 @@ logger = get_logger()
 
 
 def create_ssm_instance_profile(iam_client: boto3.client) -> str:
-    try:
-        with Halo(text="Creating IAM role for Session Manager", spinner="dots"):
-            logger.debug("Creating IAM Role for Session Manager")
-            try:
-                create_role_response = iam_client.create_role(
-                    RoleName=SSM_ROLE_NAME,
-                    AssumeRolePolicyDocument=json.dumps(EC2_TRUST_RELATIONSHIP),
-                    Description="IAM Role for connecting to EC2 instance with Session Manager",
-                )
-                logger.debug("IAM Role for Session Manager created successfully")
-            except ClientError as error:
+    with Halo(text="Creating IAM role for Session Manager", spinner="dots"):
+        logger.debug("Creating IAM Role for Session Manager")
+        try:
+            create_role_response = iam_client.create_role(
+                RoleName=SSM_ROLE_NAME,
+                AssumeRolePolicyDocument=json.dumps(EC2_TRUST_RELATIONSHIP),
+                Description="IAM Role for connecting to EC2 instance with Session Manager",
+            )
+            logger.debug("IAM Role for Session Manager created successfully")
+        except ClientError as error:
+            if error.response["Error"]["Code"] != "EntityAlreadyExists":
                 logger.error("Unable to create IAM Role for Session Manager")
                 raise Exception("Unable to create IAM Role for Session Manager", error)
+            else:
+                logger.debug("IAM Role for Session Manager already exists, proceeding")
+                return SSM_ROLE_NAME
 
-        with Halo(text="Attaching SSM policy to role", spinner="dots"):
-            logger.debug("Attaching SSM policy to role")
-            try:
-                iam_client.attach_role_policy(
-                    RoleName=create_role_response["Role"]["RoleName"],
-                    PolicyArn="arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
-                )
-                logger.debug("Attached SSM policy to role successfully")
-            except ClientError as error:
-                logger.error("Unable to attach SSM policy to role")
-                raise Exception("Unable to attach SSM policy to role", error)
+    with Halo(text="Attaching SSM policy to role", spinner="dots"):
+        logger.debug("Attaching SSM policy to role")
+        try:
+            iam_client.attach_role_policy(
+                RoleName=create_role_response["Role"]["RoleName"],
+                PolicyArn="arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+            )
+            logger.debug("Attached SSM policy to role successfully")
+        except ClientError as error:
+            logger.error("Unable to attach SSM policy to role")
+            raise Exception("Unable to attach SSM policy to role", error)
 
-        with Halo(text="Creating instance profile", spinner="dots"):
-            logger.debug("Creating instance profile")
-            iam_client.create_instance_profile(InstanceProfileName=SSM_ROLE_NAME)
+    with Halo(text="Creating instance profile", spinner="dots"):
+        logger.debug("Creating instance profile")
+        iam_client.create_instance_profile(InstanceProfileName=SSM_ROLE_NAME)
 
-        with Halo(text="Attaching instance profile to IAM role", spinner="dots"):
-            logger.debug("Attaching instance profile to IAM role")
-            try:
-                iam_client.add_role_to_instance_profile(
-                    InstanceProfileName=SSM_ROLE_NAME, RoleName=SSM_ROLE_NAME
-                )
-                logger.debug("Attached instance profile to IAM role successfully")
-            except ClientError as error:
-                logger.error("Unable to attach instance profile to IAM role")
-                raise Exception("Unable to attach instance profile to IAM role", error)
-        return SSM_ROLE_NAME
-
-    except ClientError as error:
-        if error.response["Error"]["Code"] != "EntityAlreadyExists":
-            logger.error("Error creating SSM instance profile", error)
-            raise Exception("Error creating SSM instance profile", error)
-        else:
-            return SSM_ROLE_NAME
+    with Halo(text="Attaching instance profile to IAM role", spinner="dots"):
+        logger.debug("Attaching instance profile to IAM role")
+        try:
+            iam_client.add_role_to_instance_profile(
+                InstanceProfileName=SSM_ROLE_NAME, RoleName=SSM_ROLE_NAME
+            )
+            logger.debug("Attached instance profile to IAM role successfully")
+        except ClientError as error:
+            logger.error("Unable to attach instance profile to IAM role")
+            raise Exception("Unable to attach instance profile to IAM role", error)
+    return SSM_ROLE_NAME
 
 
 def get_key_pairs(ec2_client: boto3.client) -> list:
@@ -385,34 +381,16 @@ def provision_ec2_instance(
     iam_client: boto3.client,
     ec2_resource: boto3.resource,
 ) -> str:
-    username = get_username()
     if keypair == "None":
         with Halo(text="Provisioning instance with SSM access", spinner="dots"):
             logger.debug("Provisioning instance with SSM access")
             ec2_response = ec2_client.run_instances(
-                BlockDeviceMappings=[
-                    {
-                        "DeviceName": "/dev/xvda",
-                        "Ebs": {
-                            "DeleteOnTermination": True,
-                            "VolumeSize": 30,
-                            "VolumeType": "gp2",
-                        },
-                    },
-                ],
-                TagSpecifications=[
-                    {
-                        "ResourceType": "instance",
-                        "Tags": [
-                            {"Key": "Name", "Value": f"{username}-instance"},
-                            {"Key": "Owner", "Value": username},
-                        ],
-                    },
-                ],
+                LaunchTemplate={
+                    "LaunchTemplateName": launch_template["LaunchTemplateName"],
+                },
                 InstanceType=instance_type,
                 MaxCount=num_instances,
                 MinCount=num_instances,
-                Monitoring={"Enabled": False},
             )
             instance_id = ec2_response["Instances"][0]["InstanceId"]
         with Halo(text="Waiting for instance to be in running state", spinner="dots"):
@@ -428,7 +406,7 @@ def provision_ec2_instance(
             )
             logger.debug("Creating SSM instance profile")
             try:
-                instance_profile = create_ssm_instance_profile(iam_client == iam_client)
+                instance_profile = create_ssm_instance_profile(iam_client=iam_client)
             except ClientError as error:
                 logger.error("Error creating SSM instance profile", error)
                 raise Exception("Error creating SSM instance profile", error)
@@ -447,8 +425,8 @@ def provision_ec2_instance(
                 )
 
     else:
-        with Halo(text="Provisioning instance with KeyPair access", spinner="dots"):
-            logger.debug("Provisioning instance with KeyPair access")
+        with Halo(text="Provisioning instance with Keypair access", spinner="dots"):
+            logger.debug("Provisioning instance with Keypair access")
             try:
                 ec2_response = ec2_client.run_instances(
                     LaunchTemplate={
@@ -460,9 +438,9 @@ def provision_ec2_instance(
                     KeyName=keypair,
                 )
             except ClientError as error:
-                logger.error("Error provisioning instance with KeyPair access", error)
+                logger.error("Error provisioning instance with Keypair access", error)
                 raise Exception(
-                    "Error provisioning instance with KeyPair access", error
+                    "Error provisioning instance with Keypair access", error
                 )
             instance_id = ec2_response["Instances"][0]["InstanceId"]
 
