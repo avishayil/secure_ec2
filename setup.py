@@ -51,7 +51,7 @@ setup(
     description="A project that helps you to provision EC2 instance securely",
     entry_points={
         "console_scripts": [
-            "secure_ec2=secure_ec2.cli:main",
+            "secure_ec2=secure_ec2.main:cli",
         ],
     },
     install_requires=requirements,

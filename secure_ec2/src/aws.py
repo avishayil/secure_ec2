@@ -4,10 +4,9 @@ import sys
 import boto3
 from botocore.config import Config
 
-logger = logging.getLogger(__name__)
-fh = logging.FileHandler("debug.log")
-fh.setLevel(logging.DEBUG)
-logger.addHandler(fh)
+from secure_ec2.src.helpers import get_logger
+
+logger = get_logger()
 
 
 def get_boto3_client(
@@ -19,7 +18,7 @@ def get_boto3_client(
     if profile:
         session_data["profile_name"] = profile
     session = boto3.Session(**session_data)
-    if region not in get_available_regions(service):
+    if is_regional_service(service) and region not in get_available_regions(service):
         logger.debug(f"The service {service} is not available in this region!")
         sys.exit()
     config = Config(read_timeout=5, connect_timeout=5, retries={"max_attempts": 10})
@@ -44,6 +43,13 @@ def get_boto3_resource(
     return resource
 
 
+def is_regional_service(service: str):
+    """Check if a service is in the availble service list via the API and see if it global."""
+    return "aws-global" not in boto3.session.Session().get_available_regions(
+        service, allow_non_regional=True
+    )
+
+
 def get_available_regions(service: str):
     """AWS exposes their list of regions as an API. Gather the list."""
     regions = boto3.session.Session().get_available_regions(service)
@@ -55,9 +61,8 @@ def get_available_regions(service: str):
     return regions
 
 
-def get_current_account_id() -> str:
+def get_current_account_id(sts_client: boto3.client) -> str:
     """Invoke API call to get the account id from the current boto3 session."""
-    sts_client = get_boto3_client(region="us-east-1", profile="default", service="sts")
     return sts_client.get_caller_identity().get("Account")
 
 
@@ -71,3 +76,8 @@ def construct_console_connect_url(instance_id: str, region: str = "us-east-1") -
     """Assemble the AWS console instance connect url with the current instance id and region."""
     instance_connect_url = f"https://console.aws.amazon.com/ec2/v2/home?region={region}#ConnectToInstance:instanceId={instance_id}"  # noqa: E501
     return instance_connect_url
+
+
+def get_region_from_boto3_client(boto3_client: boto3.client):
+    current_region = boto3_client.meta.region_name
+    return current_region
