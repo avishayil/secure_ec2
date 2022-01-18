@@ -46,7 +46,9 @@ def get_boto3_resource(
 
 def is_regional_service(service: str):
     """Check if a service is in the availble service list via the API and see if it global."""
-    return 'aws-global' not in boto3.session.Session().get_available_regions(service, allow_non_regional=True)
+    return "aws-global" not in boto3.session.Session().get_available_regions(
+        service, allow_non_regional=True
+    )
 
 
 def get_available_regions(service: str):
