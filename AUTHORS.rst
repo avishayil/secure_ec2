@@ -5,9 +5,9 @@ Credits
 Development Lead
 ----------------
 
-* Avishay Bar <avishay.il@gmail.com>
+* Avishay Bar `@avishayil <https://github.com/avishayil>`_
 
 Contributors
 ------------
 
-None yet. Why not be the first?
+* Al S `@xee5ch <https://github.com/xee5ch>`_

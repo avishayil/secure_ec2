@@ -17,7 +17,7 @@ Secure EC2
         :target: https://coverage.readthedocs.io/
         :alt: Coverage
 
-A project that helps you to provision EC2 instance securely
+CLI tool that helps you to provision EC2 instances securely
 
 
 * Free software: MIT license
