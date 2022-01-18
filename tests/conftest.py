@@ -1,14 +1,21 @@
 import pytest
 from moto import mock_ec2, mock_iam
 
-from secure_ec2.src import helpers
+from secure_ec2.src import constants, helpers
 
 
 def mock_get_ip_address():
     return "192.168.1.1"
 
 
+def mock_get_amazon_ami_owner_id():
+    return "123456789012"
+
+
 pytest.MonkeyPatch().setattr(helpers, "get_ip_address", mock_get_ip_address)
+pytest.MonkeyPatch().setattr(
+    constants, "AMAZON_AMI_OWNER_ID", mock_get_amazon_ami_owner_id()
+)
 from secure_ec2.src.aws import get_boto3_client, get_boto3_resource  # noqa: E402
 
 
