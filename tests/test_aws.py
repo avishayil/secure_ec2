@@ -24,7 +24,6 @@ def test_get_ec2_resource():
 
 def test_get_available_regions():
     available_regions = get_available_regions(service="ec2")
-    print(available_regions)
     assert isinstance(available_regions, list)
 
 
