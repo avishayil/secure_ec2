@@ -4,10 +4,9 @@ import sys
 import boto3
 from botocore.config import Config
 
-logger = logging.getLogger(__name__)
-fh = logging.FileHandler("debug.log")
-fh.setLevel(logging.DEBUG)
-logger.addHandler(fh)
+from secure_ec2.src.helpers import get_logger
+
+logger = get_logger()
 
 
 def get_boto3_client(
