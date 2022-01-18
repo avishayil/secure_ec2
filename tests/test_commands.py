@@ -59,7 +59,7 @@ def test_launch_happy_linux(ec2_client_stub):
 
     launch_result = runner.invoke(
         launch,
-        ["-t", "Linux", "-n", "1", "-k", "demo-kp", "-i", "t2.micro"],
+        ["-t", "Linux", "-n", "1", "-k", "demo-kp", "-i", "t2.micro", "-nc"],
     )
 
     assert launch_result.exit_code == 0
@@ -86,7 +86,7 @@ def test_launch_happy_windows(ec2_client_stub):
 
     launch_result = runner.invoke(
         launch,
-        ["-t", "Windows", "-n", "1", "-k", "demo-kp", "-i", "t2.micro"],
+        ["-t", "Windows", "-n", "1", "-k", "demo-kp", "-i", "t2.micro", "-nc"],
     )
 
     assert launch_result.exit_code == 0
@@ -124,7 +124,7 @@ def test_launch_happy_linux_ssm(ec2_client_stub):
 
     launch_result = runner.invoke(
         launch,
-        ["-t", "Linux", "-n", "1", "-k", "None", "-i", "t2.micro"],
+        ["-t", "Linux", "-n", "1", "-k", "None", "-i", "t2.micro", "-nc"],
     )
 
     assert launch_result.exit_code == 0
@@ -151,7 +151,7 @@ def test_launch_happy_windows_ssm(ec2_client_stub):
 
     launch_result = runner.invoke(
         launch,
-        ["-t", "Windows", "-n", "1", "-k", "None", "-i", "t2.micro"],
+        ["-t", "Windows", "-n", "1", "-k", "None", "-i", "t2.micro", "-nc"],
     )
 
     assert launch_result.exit_code == 0

@@ -387,7 +387,7 @@ def provision_ec2_instance(
     ec2_client: boto3.client,
     iam_client: boto3.client,
     ec2_resource: boto3.resource,
-    clip: bool = True,
+    no_clip: bool = False,
 ) -> str:
     if keypair == "None":
         with Halo(text="Provisioning instance with SSM access\r\n", spinner="dots"):
@@ -422,7 +422,7 @@ def provision_ec2_instance(
                 raise Exception("Error creating SSM instance profile", error)
             logger.debug("Associating instance profile with the instance")
             try:
-                if clip:
+                if not no_clip:
                     pyperclip.copy(
                         construct_session_manager_url(
                             instance_id=instance_id,
@@ -472,7 +472,7 @@ def provision_ec2_instance(
         click.echo(
             f"Instance {instance_id} provisioned successfully. Connect securely using SSH / RDP and your KeyPair:\r\n{construct_console_connect_url(instance_id=instance_id, region=get_region_from_boto3_client(boto3_client=ec2_client))}"  # noqa: E501
         )
-        if clip:
+        if not no_clip:
             pyperclip.copy(
                 construct_session_manager_url(
                     instance_id=instance_id,

@@ -50,6 +50,12 @@ class NumberValidator(Validator):
     help="Instance type, affects compute & networking performance",
 )
 @click.option(
+    "-nc",
+    "--no_clip",
+    is_flag=True,
+    help="Should we avoid copying the Session Manager URL to the clipboard",
+)
+@click.option(
     "-p",
     "--profile",
     required=False,
@@ -71,6 +77,7 @@ def launch(
     num_instances: str,
     keypair: str,
     instance_type: str,
+    no_clip: bool,
     profile: str,
     region: str,
 ):
@@ -133,6 +140,7 @@ def launch(
                 ec2_client=ec2_client,
                 iam_client=iam_client,
                 ec2_resource=ec2_resource,
+                no_clip=no_clip,
             )
 
             print("Secure instance provisioning completed successfully")
@@ -154,6 +162,7 @@ def launch(
             ec2_client=ec2_client,
             iam_client=iam_client,
             ec2_resource=ec2_resource,
+            no_clip=no_clip,
         )
 
         print("Secure instance provisioning completed successfully")
