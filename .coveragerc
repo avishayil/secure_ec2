@@ -6,8 +6,12 @@ omit =
     tests/*
     .venv/*
     setup.py
+    secure_ec2/__init__.py
+    secure_ec2/main.py
 
 [report]
+# Skip empty files like __init__.py etc
+skip_empty = true
 # Regexes for lines to exclude from consideration
 exclude_lines =
     # Have to re-enable the standard pragma

@@ -32,6 +32,7 @@ test_requirements = [
     "pre-commit>=2.13.0",
     "bump2version>=0.5.4",
     "tox>=3.24.5",
+    "Sphinx>=4.4.0",
 ]
 
 setup(
@@ -48,7 +49,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
     ],
-    description="A project that helps you to provision EC2 instance securely",
+    description="CLI tool that helps you to provision EC2 instances securely",
     entry_points={
         "console_scripts": [
             "secure_ec2=secure_ec2.main:cli",
@@ -67,6 +68,6 @@ setup(
         "develop": test_requirements,
     },
     url="https://github.com/avishayil/secure_ec2",
-    version="0.0.4",
+    version="0.0.5",
     zip_safe=False,
 )

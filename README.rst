@@ -17,7 +17,7 @@ Secure EC2
         :target: https://coverage.readthedocs.io/
         :alt: Coverage
 
-A project that helps you to provision EC2 instance securely
+CLI tool that helps you to provision EC2 instances securely
 
 
 * Free software: MIT license
@@ -121,6 +121,7 @@ Example for launching a Windows instance with Session Manager access:
 -n --num_instances           int      True         Number of instances to provision securely
 -k --keypair                 str      True         Keypair name to launch the instance with
 -i --instance_type           str      True         Instance type, affects compute & networking performance
+-nc --no_clip                bool     False        Instruct the tool to not copy the SSM url to the clipboard
 -p --profile                 str      False        AWS profile name to use
 -r --region                  str      False        AWS region to use
 ===========================  ======== ============ ===========================================================
@@ -138,11 +139,15 @@ Demo
 Linux
 =====
 
+The following example runs a Linux instance with SSH access using keypair:
+
 .. image:: screenshots/linux.gif
         :alt: Linux Example
 
 Windows
 =======
+
+The following example runs a Windows instance with Session Manager access:
 
 .. image:: screenshots/windows.gif
         :alt: Windows Example
