@@ -16,6 +16,7 @@ requirements = [
     "PyInquirer==1.0.3",
     "requests==2.25.1",
     "halo==0.0.31",
+    "pyperclip==1.8.2",
 ]
 
 test_requirements = [
@@ -30,6 +31,7 @@ test_requirements = [
     "coverage-badge>=1.0.1",
     "pre-commit>=2.13.0",
     "bump2version>=0.5.4",
+    "tox>=3.24.5",
 ]
 
 setup(

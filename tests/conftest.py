@@ -1,5 +1,5 @@
 import pytest
-from moto import mock_ec2, mock_iam
+from moto import mock_ec2, mock_iam, mock_sts
 
 from secure_ec2.src import constants, helpers
 
@@ -44,3 +44,12 @@ def iam_client_stub():
             service="iam",
         )
         yield iam_client
+
+
+@pytest.fixture(autouse=True)
+def sts_client_stub():
+    with mock_sts():
+        sts_client = get_boto3_client(
+            service="sts",
+        )
+        yield sts_client
