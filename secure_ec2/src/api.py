@@ -32,7 +32,7 @@ logger = get_logger()
 
 
 def create_ssm_instance_profile(iam_client: boto3.client) -> str:
-    with Halo(text="Creating IAM role for Session Manager", spinner="dots"):
+    with Halo(text="Creating IAM role for Session Manager\r\n", spinner="dots"):
         logger.debug("Creating IAM Role for Session Manager")
         try:
             create_role_response = iam_client.create_role(
@@ -49,7 +49,7 @@ def create_ssm_instance_profile(iam_client: boto3.client) -> str:
                 logger.debug("IAM Role for Session Manager already exists, proceeding")
                 return SSM_ROLE_NAME
 
-    with Halo(text="Attaching SSM policy to role", spinner="dots"):
+    with Halo(text="Attaching SSM policy to role\r\n", spinner="dots"):
         logger.debug("Attaching SSM policy to role")
         try:
             iam_client.attach_role_policy(
@@ -61,11 +61,11 @@ def create_ssm_instance_profile(iam_client: boto3.client) -> str:
             logger.error("Unable to attach SSM policy to role")
             raise Exception("Unable to attach SSM policy to role", error)
 
-    with Halo(text="Creating instance profile", spinner="dots"):
+    with Halo(text="Creating instance profile\r\n", spinner="dots"):
         logger.debug("Creating instance profile")
         iam_client.create_instance_profile(InstanceProfileName=SSM_ROLE_NAME)
 
-    with Halo(text="Attaching instance profile to IAM role", spinner="dots"):
+    with Halo(text="Attaching instance profile to IAM role\r\n", spinner="dots"):
         logger.debug("Attaching instance profile to IAM role")
         try:
             iam_client.add_role_to_instance_profile(
@@ -80,7 +80,7 @@ def create_ssm_instance_profile(iam_client: boto3.client) -> str:
 
 def get_key_pairs(ec2_client: boto3.client) -> list:
     key_pair_list = []
-    with Halo(text="Getting keypairs", spinner="dots"):
+    with Halo(text="Getting keypairs\r\n", spinner="dots"):
         logger.debug("Getting keypairs")
         try:
             describe_key_pairs_response = ec2_client.describe_key_pairs()
@@ -92,7 +92,7 @@ def get_key_pairs(ec2_client: boto3.client) -> list:
 
 
 def get_subnet_id(ec2_client: boto3.client) -> str:
-    with Halo(text="Getting subnet", spinner="dots"):
+    with Halo(text="Getting subnet\r\n", spinner="dots"):
         logger.debug("Getting subnet")
         try:
             describe_subnets_response = ec2_client.describe_subnets()
@@ -104,7 +104,7 @@ def get_subnet_id(ec2_client: boto3.client) -> str:
 
 
 def get_default_vpc(ec2_client: boto3.client) -> str:
-    with Halo(text="Looking for default VPC", spinner="dots"):
+    with Halo(text="Looking for default VPC\r\n", spinner="dots"):
         logger.debug("Looking for default VPC")
         try:
             vpcs_response = ec2_client.describe_vpcs(
@@ -121,7 +121,7 @@ def get_default_vpc(ec2_client: boto3.client) -> str:
 def create_security_group(vpc_id: str, os_type: str, ec2_client: boto3.client) -> Any:
     security_group_name = f"{get_username()}-sg"
 
-    with Halo(text="Creating security group", spinner="dots"):
+    with Halo(text="Creating security group\r\n", spinner="dots"):
         logger.debug("Creating security group")
         logger.debug("Describing current security groups")
         try:
@@ -207,7 +207,7 @@ def get_latest_launch_template(os_type: str, ec2_client: boto3.client) -> Any:
 def get_latest_ami_id(os_type: str, ec2_client: any) -> str:
     os_regex = get_os_regex(os_type=os_type)
 
-    with Halo(text=f"Getting latest {os_type} AMI", spinner="dots"):
+    with Halo(text=f"Getting latest {os_type} AMI\r\n", spinner="dots"):
         logger.debug(f"Getting latest {os_type} AMI")
         try:
             response = ec2_client.describe_images(
@@ -253,7 +253,7 @@ def create_launch_template(
     )
     logger.debug("Information gathering completed successfully")
     username = get_username()
-    with Halo(text="Creating Launch Template", spinner="dots"):
+    with Halo(text="Creating Launch Template\r\n", spinner="dots"):
         logger.debug("Creating Launch Template")
         try:
             ec2_response = ec2_client.create_launch_template(
@@ -390,7 +390,7 @@ def provision_ec2_instance(
     clip: bool = True,
 ) -> str:
     if keypair == "None":
-        with Halo(text="Provisioning instance with SSM access", spinner="dots"):
+        with Halo(text="Provisioning instance with SSM access\r\n", spinner="dots"):
             logger.debug("Provisioning instance with SSM access")
             ec2_response = ec2_client.run_instances(
                 LaunchTemplate={
@@ -401,12 +401,14 @@ def provision_ec2_instance(
                 MinCount=num_instances,
             )
             instance_id = ec2_response["Instances"][0]["InstanceId"]
-        with Halo(text="Waiting for instance to be in running state", spinner="dots"):
+        with Halo(
+            text="Waiting for instance to be in running state\r\n", spinner="dots"
+        ):
             logger.debug("Waiting for instance to be in running state")
             ec2_resource.Instance(instance_id).wait_until_running()
 
         with Halo(
-            text="Creating SSM instance profile and associating with the instance",
+            text="Creating SSM instance profile and associating with the instance\r\n",
             spinner="dots",
         ):
             logger.debug(
@@ -443,7 +445,7 @@ def provision_ec2_instance(
                 )
 
     else:
-        with Halo(text="Provisioning instance with Keypair access", spinner="dots"):
+        with Halo(text="Provisioning instance with Keypair access\r\n", spinner="dots"):
             logger.debug("Provisioning instance with Keypair access")
             try:
                 ec2_response = ec2_client.run_instances(
@@ -462,7 +464,9 @@ def provision_ec2_instance(
                 )
             instance_id = ec2_response["Instances"][0]["InstanceId"]
 
-        with Halo(text="Waiting for instance to be in running state", spinner="dots"):
+        with Halo(
+            text="Waiting for instance to be in running state\r\n", spinner="dots"
+        ):
             logger.debug("Waiting for instance to be in running state")
             ec2_resource.Instance(instance_id).wait_until_running()
         click.echo(

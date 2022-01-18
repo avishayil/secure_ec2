@@ -10,7 +10,6 @@ from secure_ec2.src.aws import (
 def test_get_ec2_client():
     ec2_client = get_boto3_client(service="ec2")
     assert isinstance(ec2_client, object)
-    # assert ec2_client.meta.
 
 
 def test_get_iam_client():

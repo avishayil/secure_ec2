@@ -32,7 +32,7 @@ def get_username() -> str:
 
 def get_ip_address() -> str:
     """Get the public IP address of the computer"""
-    with Halo(text="Getting IP address", spinner="dots"):
+    with Halo(text="Getting IP address\r\n", spinner="dots"):
         ip_address = requests.get("http://checkip.amazonaws.com").text.rstrip()
         return ip_address
 
