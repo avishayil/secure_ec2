@@ -19,7 +19,7 @@ def get_boto3_client(
     if profile:
         session_data["profile_name"] = profile
     session = boto3.Session(**session_data)
-    if region not in get_available_regions(service):
+    if is_regional_service(service) and region not in get_available_regions(service):
         logger.debug(f"The service {service} is not available in this region!")
         sys.exit()
     config = Config(read_timeout=5, connect_timeout=5, retries={"max_attempts": 10})
@@ -43,6 +43,9 @@ def get_boto3_resource(
     resource = session.resource(service)
     return resource
 
+def is_regional_service(service: str):
+    """Check if a service is in the availble service list via the API and see if it global."""
+    return 'aws-global' not in boto3.session.Session().get_available_regions(service, allow_non_regional=True)
 
 def get_available_regions(service: str):
     """AWS exposes their list of regions as an API. Gather the list."""
