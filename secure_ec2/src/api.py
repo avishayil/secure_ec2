@@ -16,6 +16,8 @@ from secure_ec2.src.aws import (
 from secure_ec2.src.constants import (
     AMAZON_AMI_OWNER_ID,
     EC2_TRUST_RELATIONSHIP,
+    MetadataOptions,
+    OperatingSystem,
     MODULE_NAME,
     SSM_ROLE_NAME,
 )
@@ -243,6 +245,7 @@ def get_latest_ami_id(os_type: str, ec2_client: any) -> str:
 
 def create_launch_template(
     os_type: str,
+    metadata_options: MetadataOptions,
     ec2_client: boto3.client,
 ) -> Any:
     image_id = get_latest_ami_id(os_type=os_type, ec2_client=ec2_client)
@@ -290,6 +293,10 @@ def create_launch_template(
                             ],
                         },
                     ],
+                    "MetadataOptions": {
+                        "HttpEndpoint": "disabled" if metadata_options == MetadataOptions.DISABLED else "enabled",
+                        "HttpTokens": "optional" if metadata_options == MetadataOptions.V1ANDV2 else "required"
+                    }
                 },
                 TagSpecifications=[
                     {
