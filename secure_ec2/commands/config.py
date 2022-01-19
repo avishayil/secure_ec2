@@ -6,6 +6,7 @@ from PyInquirer import Token, prompt, style_from_dict
 from secure_ec2.src.api import create_launch_template
 from secure_ec2.src.aws import get_boto3_client
 from secure_ec2.src.helpers import get_logger
+from secure_ec2.commands.helpers import normalize_metadata, normalize_os
 
 logger = get_logger()
 
@@ -58,7 +59,18 @@ def config(profile: str, region: str, os_type: str):
                 "name": "os_type",
                 "message": "What type of OS?",
                 "choices": ["Windows", "Linux"],
-            }
+            },
+            {
+                "type": "rawlist",
+                "name": "metadata_options",
+                "message": "Does the instance need a role for authenticated AWS API calls?",
+                "choices": [
+                    "Yes",
+                    "No",
+                    "I'm an expert, I only want secure IMDSv2.",
+                    "I'm an expert, I need secure IMDSv2 and legacy IMDSv2."
+                ]
+            },
         ]
         answers = prompt(questions, style=style)
 
@@ -66,7 +78,8 @@ def config(profile: str, region: str, os_type: str):
             logger.info("Creating launch template with the selected configuration")
             print("Creating launch template with the selected configuration")
             create_launch_template(
-                os_type=answers["os_type"].lower(),
+                os_type=normalize_os(answers["os_type"]).name.lower(),
+                metadata_options=normalize_metadata(answers["metadata_options"]),
                 ec2_client=ec2_client,
             )
             print(

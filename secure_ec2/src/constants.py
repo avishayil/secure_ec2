@@ -1,3 +1,5 @@
+from enum import Enum
+
 MODULE_NAME = "secure_ec2"
 LAUNCH_TEMPLATE_SUFFIX = "tpl"
 SSM_ROLE_NAME = "SessionManagerInstanceProfile"
@@ -12,3 +14,12 @@ EC2_TRUST_RELATIONSHIP = {
         }
     ],
 }
+
+class OperatingSystem(Enum):
+    LINUX = 1
+    WINDOWS = 2
+
+class MetadataOptions(Enum):
+    V1ANDV2 = 1
+    V2 = 2
+    DISABLED = 3
