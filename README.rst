@@ -29,7 +29,7 @@ TL;DR
 
 .. code-block:: bash
 
-  $ brew tap avishayil/homebrew-taps && brew install secure_ec2 # Install secure_ec2 via homebrew
+  $ brew tap avishayil/homebrew-taps && brew install secure-ec2 # Install secure_ec2 via homebrew
   § secure_ec2 config # Generating secure launch configuration
   § secure_ec2 launch # Launching instance(s) according to the generated launch configuration
 
