@@ -10,17 +10,32 @@ Stable release
 
 To install Secure EC2, run this command in your terminal:
 
-.. code-block:: console
+**Install via Homebrew**
 
-    $ pip install secure_ec2
+.. code-block:: bash
 
-This is the preferred method to install Secure EC2, as it will always install the most recent stable release.
+    § brew tap avishayil/homebrew-taps
+    § brew install secure-ec2
+
+If you don't have `brew`_ installed, this `Homebrew installation guide`_ can guide
+you through the process.
+
+.. _brew: https://brew.sh/
+.. _Homebrew installation guide: https://docs.brew.sh/Installation
+
+**Install via pip**
+
+.. code-block:: bash
+
+    § pip install secure_ec2
 
 If you don't have `pip`_ installed, this `Python installation guide`_ can guide
 you through the process.
 
 .. _pip: https://pip.pypa.io
 .. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
+
+These are the preferred methods to install Secure EC2, as it will always install the most recent stable release.
 
 
 From sources
