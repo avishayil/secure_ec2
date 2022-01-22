@@ -4,6 +4,8 @@
 
 from setuptools import find_packages, setup
 
+from secure_ec2.version import __version__
+
 with open("README.rst") as readme_file:
     readme = readme_file.read()
 
@@ -68,6 +70,6 @@ setup(
         "develop": test_requirements,
     },
     url="https://github.com/avishayil/secure_ec2",
-    version="0.0.5",
+    version=__version__,
     zip_safe=False,
 )
