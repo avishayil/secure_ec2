@@ -4,9 +4,7 @@ import sys
 import boto3
 from botocore.config import Config
 
-from secure_ec2.src.helpers import get_logger
-
-logger = get_logger()
+logger = logging.getLogger(__name__)
 
 
 def get_boto3_client(

@@ -1,3 +1,4 @@
+import logging
 import sys
 
 import click
@@ -9,9 +10,8 @@ from secure_ec2.src.api import (
     provision_ec2_instance,
 )
 from secure_ec2.src.aws import get_boto3_client, get_boto3_resource
-from secure_ec2.src.helpers import get_logger
 
-logger = get_logger()
+logger = logging.getLogger(__name__)
 
 
 class NumberValidator(Validator):

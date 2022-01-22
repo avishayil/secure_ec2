@@ -1,4 +1,5 @@
 import json
+import logging
 from operator import itemgetter
 from typing import Any
 
@@ -23,12 +24,11 @@ from secure_ec2.src.helpers import (
     get_connection_port,
     get_ip_address,
     get_launch_template_name,
-    get_logger,
     get_os_regex,
     get_username,
 )
 
-logger = get_logger()
+logger = logging.getLogger(__name__)
 
 
 def create_ssm_instance_profile(iam_client: boto3.client) -> str:
