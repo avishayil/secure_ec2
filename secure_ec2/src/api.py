@@ -1,6 +1,7 @@
 import json
 import logging
 from operator import itemgetter
+from sys import exit
 from typing import Any
 
 import boto3
@@ -43,8 +44,8 @@ def create_ssm_instance_profile(iam_client: boto3.client) -> str:
             logger.debug("IAM Role for Session Manager created successfully")
         except ClientError as error:
             if error.response["Error"]["Code"] != "EntityAlreadyExists":
-                logger.error("Unable to create IAM Role for Session Manager")
-                raise Exception("Unable to create IAM Role for Session Manager", error)
+                logger.error(f"Unable to create IAM Role for Session Manager: {error}")
+                exit(1)
             else:
                 logger.debug("IAM Role for Session Manager already exists, proceeding")
                 return SSM_ROLE_NAME
@@ -58,8 +59,8 @@ def create_ssm_instance_profile(iam_client: boto3.client) -> str:
             )
             logger.debug("Attached SSM policy to role successfully")
         except ClientError as error:
-            logger.error("Unable to attach SSM policy to role")
-            raise Exception("Unable to attach SSM policy to role", error)
+            logger.error(f"\r\nUnable to attach SSM policy to role: {error}")
+            exit(1)
 
     with Halo(text="Creating instance profile\r\n", spinner="dots"):
         logger.debug("Creating instance profile")
@@ -73,8 +74,8 @@ def create_ssm_instance_profile(iam_client: boto3.client) -> str:
             )
             logger.debug("Attached instance profile to IAM role successfully")
         except ClientError as error:
-            logger.error("Unable to attach instance profile to IAM role")
-            raise Exception("Unable to attach instance profile to IAM role", error)
+            logger.error(f"\r\nUnable to attach instance profile to IAM role: {error}")
+            exit(1)
     return SSM_ROLE_NAME
 
 
@@ -85,7 +86,8 @@ def get_key_pairs(ec2_client: boto3.client) -> list:
         try:
             describe_key_pairs_response = ec2_client.describe_key_pairs()
         except ClientError as error:
-            raise Exception("Error utilizing AWS credentials", error)
+            logger.error(f"\r\nError utilizing AWS credentials: {error}")
+            exit(1)
     for key_pair in describe_key_pairs_response.get("KeyPairs"):
         key_pair_list.append(key_pair.get("KeyName"))
     return key_pair_list
@@ -97,8 +99,8 @@ def get_subnet_id(ec2_client: boto3.client) -> str:
         try:
             describe_subnets_response = ec2_client.describe_subnets()
         except ClientError as error:
-            logger.error("Error getting subnet", error)
-            raise Exception("Error getting subnet", error)
+            logger.error(f"\r\nError getting subnet: {error}")
+            exit(1)
 
         return describe_subnets_response["Subnets"][-1]["SubnetId"]
 
@@ -113,8 +115,8 @@ def get_default_vpc(ec2_client: boto3.client) -> str:
                 ],
             )
         except ClientError as error:
-            logger.error("Error looking for default VPC", error)
-            raise Exception("Error looking for default VPC", error)
+            logger.error(f"\r\nError looking for default VPC: {error}")
+            exit(1)
         return vpcs_response["Vpcs"][0]["VpcId"]
 
 
@@ -146,11 +148,11 @@ def create_security_group(vpc_id: str, os_type: str, ec2_client: boto3.client) -
                     )
                     return create_security_group_response
                 except ClientError as error:
-                    logger.error("Error creating security group", error)
-                    raise Exception("Error creating security group", error)
+                    logger.error(f"\r\nError creating security group: {error}")
+                    exit(1)
             else:
-                logger.error("Error describing current security groups", error)
-                raise Exception("Error describing current security groups", error)
+                logger.error(f"\r\nError describing current security groups: {error}")
+                exit(1)
 
         security_group = describe_security_groups_response["SecurityGroups"][0]
         security_group_id = security_group["GroupId"]
@@ -178,8 +180,8 @@ def create_security_group(vpc_id: str, os_type: str, ec2_client: boto3.client) -
                 logger.debug("Security group rule already exist, proceeding")
                 return security_group
             else:
-                logger.error("Error authorizing security group ingress", error)
-                raise Exception("Error authorizing security group ingress", error)
+                logger.error(f"\r\nError authorizing security group ingress: {error}")
+                exit(1)
 
 
 def get_latest_launch_template(os_type: str, ec2_client: boto3.client) -> Any:
@@ -195,11 +197,7 @@ def get_latest_launch_template(os_type: str, ec2_client: boto3.client) -> Any:
                 please make sure that the launch template exist or run `secure_ec2 config` to generate it",
             error,
         )
-        raise Exception(
-            f"Error fetching launch template {get_launch_template_name(os_type=os_type)}, \
-                please make sure that the launch template exist or run `secure_ec2 config` to generate it",
-            error,
-        )
+        exit(1)
 
     return ec2_response["LaunchTemplates"][0]
 
@@ -227,9 +225,8 @@ def get_latest_ami_id(os_type: str, ec2_client: any) -> str:
                 ],
             )
         except ClientError as error:
-            print(error)
-            logger.error("Error getting AMI", error)
-            raise Exception("Error getting AMI", error)
+            logger.error(f"\r\nError getting AMI: {error}")
+            exit(1)
 
         # Sort on Creation date Desc
         logger.debug("Sorting AMI results")
@@ -352,8 +349,8 @@ def create_launch_template(
                         },
                     )
                 except ClientError as error:
-                    logger.error("Error creating launch template version", error)
-                    raise Exception("Error creating launch template version", error)
+                    logger.error(f"\r\nError creating launch template version: {error}")
+                    exit(1)
                 logger.debug("Launch template version created successfully")
                 launch_template_version = ec2_response["LaunchTemplateVersion"][
                     "VersionNumber"
@@ -368,15 +365,13 @@ def create_launch_template(
                     )
                 except ClientError as error:
                     logger.error(
-                        "Error modifying launch template default version", error
+                        f"Error modifying launch template default version: {error}"
                     )
-                    raise Exception(
-                        "Error modifying launch template default version", error
-                    )
+                    exit(1)
                 logger.debug("Launch template default version updated successfully")
             else:
-                logger.error("Error creating launch template", error)
-                raise Exception("Error creating launch template", error)
+                logger.error(f"\r\nError creating launch template: {error}")
+                exit(1)
 
 
 def provision_ec2_instance(
@@ -418,8 +413,8 @@ def provision_ec2_instance(
             try:
                 instance_profile = create_ssm_instance_profile(iam_client=iam_client)
             except ClientError as error:
-                logger.error("Error creating SSM instance profile", error)
-                raise Exception("Error creating SSM instance profile", error)
+                logger.error(f"\r\nError creating SSM instance profile: {error}")
+                exit(1)
             logger.debug("Associating instance profile with the instance")
             try:
                 if not no_clip:
@@ -438,11 +433,9 @@ def provision_ec2_instance(
                 )
             except ClientError as error:
                 logger.error(
-                    "Error associating instance profile with the instance", error
+                    f"Error associating instance profile with the instance: {error}"
                 )
-                raise Exception(
-                    "Error associating instance profile with the instance", error
-                )
+                exit(1)
 
     else:
         with Halo(text="Provisioning instance with Keypair access\r\n", spinner="dots"):
@@ -458,10 +451,10 @@ def provision_ec2_instance(
                     KeyName=keypair,
                 )
             except ClientError as error:
-                logger.error("Error provisioning instance with Keypair access", error)
-                raise Exception(
-                    "Error provisioning instance with Keypair access", error
+                logger.error(
+                    f"Error provisioning instance with Keypair access: {error}"
                 )
+                exit(1)
             instance_id = ec2_response["Instances"][0]["InstanceId"]
 
         with Halo(
