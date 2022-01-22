@@ -1,11 +1,9 @@
-import logging
 import re
 
 from secure_ec2.src.helpers import (
     get_connection_port,
     get_ip_address,
     get_launch_template_name,
-    get_logger,
     get_os_regex,
     get_username,
 )
@@ -38,8 +36,3 @@ def test_get_os_regex():
 def test_get_launch_template_name():
     launch_template_name = get_launch_template_name(os_type="Linux")
     assert isinstance(launch_template_name, str)
-
-
-def test_get_logger():
-    logger = get_logger()
-    assert isinstance(logger, logging.Logger)

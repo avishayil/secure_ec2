@@ -1,3 +1,4 @@
+import logging
 import sys
 
 import click
@@ -5,9 +6,8 @@ from PyInquirer import Token, prompt, style_from_dict
 
 from secure_ec2.src.api import create_launch_template
 from secure_ec2.src.aws import get_boto3_client
-from secure_ec2.src.helpers import get_logger
 
-logger = get_logger()
+logger = logging.getLogger(__name__)
 
 
 @click.option(
