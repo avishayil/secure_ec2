@@ -7,7 +7,6 @@ from secure_ec2.version import __version__
 
 @click.group(help="CLI tool that helps you to provision EC2 instances securely")
 @click.version_option(__version__)
-@click.pass_context
 def cli():
     pass
 
