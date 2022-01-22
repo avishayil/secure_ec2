@@ -1,19 +1,10 @@
 import getpass
-import logging
 import re
 
 import requests
 from halo import Halo
 
 from secure_ec2.src.constants import LAUNCH_TEMPLATE_SUFFIX, MODULE_NAME
-
-
-def get_logger() -> logging.Logger:
-    logger = logging.getLogger(__name__)
-    fh = logging.FileHandler("debug.log")
-    fh.setLevel(logging.DEBUG)
-    logger.addHandler(fh)
-    return logger
 
 
 def get_connection_port(os_type: str) -> int:
