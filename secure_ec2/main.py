@@ -5,6 +5,7 @@ import click
 
 from secure_ec2.commands.config import config
 from secure_ec2.commands.launch import launch
+from secure_ec2.version import __version__
 
 sys.tracebacklimit = 0
 
@@ -24,6 +25,7 @@ logger.addHandler(logger_handler)
     help="Print debug logs",
 )
 @click.group(help="CLI tool that helps you to provision EC2 instances securely")
+@click.version_option(__version__)
 def cli(debug):
     if debug:
         logger.setLevel(logging.DEBUG)
