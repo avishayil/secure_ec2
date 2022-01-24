@@ -22,7 +22,8 @@ def test_get_key_pairs(ec2_client_stub):
 
 def test_get_subnet_id(ec2_client_stub):
     """Testing the get_subnet_id method."""
-    subnet_id = get_subnet_id(ec2_client=ec2_client_stub)
+    vpc_id = get_default_vpc(ec2_client=ec2_client_stub)
+    subnet_id = get_subnet_id(vpc_id=vpc_id, ec2_client=ec2_client_stub)
     assert isinstance(subnet_id, str)
 
 
@@ -80,7 +81,9 @@ def test_get_latest_launch_template(ec2_client_stub):
             ],
             "NetworkInterfaces": [
                 {
-                    "SubnetId": get_subnet_id(ec2_client=ec2_client_stub),
+                    "SubnetId": get_subnet_id(
+                        vpc_id="vpc-123abcd", ec2_client=ec2_client_stub
+                    ),
                     "DeviceIndex": 0,
                     "AssociatePublicIpAddress": True,
                     "Groups": [security_group["GroupId"]],
@@ -129,7 +132,9 @@ def test_provision_ec2_instance(ec2_client_stub, iam_client_stub, ec2_resource_s
             ],
             "NetworkInterfaces": [
                 {
-                    "SubnetId": get_subnet_id(ec2_client=ec2_client_stub),
+                    "SubnetId": get_subnet_id(
+                        vpc_id="vpc-123abcd", ec2_client=ec2_client_stub
+                    ),
                     "DeviceIndex": 0,
                     "AssociatePublicIpAddress": True,
                     "Groups": [security_group["GroupId"]],
