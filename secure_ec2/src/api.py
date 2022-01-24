@@ -417,16 +417,6 @@ def provision_ec2_instance(
                 exit(1)
             logger.debug("Associating instance profile with the instance")
             try:
-                if not no_clip:
-                    pyperclip.copy(
-                        construct_session_manager_url(
-                            instance_id=instance_id,
-                            region=get_region_from_boto3_client(
-                                boto3_client=ec2_client
-                            ),
-                        )
-                    )
-                    click.echo("The link is on your clipboard")
                 ec2_client.associate_iam_instance_profile(
                     IamInstanceProfile={"Name": instance_profile},
                     InstanceId=instance_id,
@@ -436,6 +426,17 @@ def provision_ec2_instance(
                     f"Error associating instance profile with the instance: {error}"
                 )
                 exit(1)
+            click.echo(
+                f"Instance {instance_id} provisioned successfully. Connect securely using Session Manager:\r\n{construct_session_manager_url(instance_id=instance_id, region=get_region_from_boto3_client(boto3_client=ec2_client))}"  # noqa: E501
+            )
+            if not no_clip:
+                pyperclip.copy(
+                    construct_session_manager_url(
+                        instance_id=instance_id,
+                        region=get_region_from_boto3_client(boto3_client=ec2_client),
+                    )
+                )
+                click.echo("The link is on your clipboard")
 
     else:
         with Halo(text="Provisioning instance with Keypair access\r\n", spinner="dots"):
