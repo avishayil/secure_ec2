@@ -1,3 +1,5 @@
+"""Configuration phase that is invoked from the command line and provisions a launch template."""
+
 import logging
 import sys
 
@@ -37,7 +39,7 @@ logger = logging.getLogger(__name__)
 )
 @click.command()
 def config(profile: str, region: str, os_type: str):
-
+    """Invoke the configuration phase for the selected operating system."""
     ec2_client = get_boto3_client(region=region, profile=profile, service="ec2")
 
     if not os_type:

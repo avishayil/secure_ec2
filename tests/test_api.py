@@ -1,3 +1,5 @@
+"""Tests definition for the API methods that secure_ec2 use."""
+
 from secure_ec2.src.api import (
     create_security_group,
     create_ssm_instance_profile,
@@ -13,21 +15,25 @@ from secure_ec2.src.helpers import get_launch_template_name, get_username
 
 
 def test_get_key_pairs(ec2_client_stub):
+    """Testing the get_key_pairs method."""
     key_pairs = get_key_pairs(ec2_client=ec2_client_stub)
     assert isinstance(key_pairs, list)
 
 
 def test_get_subnet_id(ec2_client_stub):
+    """Testing the get_subnet_id method."""
     subnet_id = get_subnet_id(ec2_client=ec2_client_stub)
     assert isinstance(subnet_id, str)
 
 
 def test_get_default_vpc(ec2_client_stub):
+    """Testing the get_default_vpc method."""
     vpc_id = get_default_vpc(ec2_client=ec2_client_stub)
     assert isinstance(vpc_id, str)
 
 
 def test_get_latest_ami_id(ec2_client_stub):
+    """Testing the get_latest_ami_id method."""
     ec2_client_stub.copy_image(
         Name="amzn2-ami-hvm-2.0-test",
         SourceImageId="ami-000c540e28953ace2",
@@ -38,6 +44,7 @@ def test_get_latest_ami_id(ec2_client_stub):
 
 
 def test_create_security_group(ec2_client_stub):
+    """Testing the create_security_group method."""
     security_group = create_security_group(
         vpc_id="vpc-123abcd", os_type="Windows", ec2_client=ec2_client_stub
     )
@@ -45,6 +52,7 @@ def test_create_security_group(ec2_client_stub):
 
 
 def test_get_latest_launch_template(ec2_client_stub):
+    """Testing the get_latest_launch_template method."""
     security_group = create_security_group(
         vpc_id="vpc-123abcd", os_type="Windows", ec2_client=ec2_client_stub
     )
@@ -91,6 +99,7 @@ def test_get_latest_launch_template(ec2_client_stub):
 
 
 def test_provision_ec2_instance(ec2_client_stub, iam_client_stub, ec2_resource_stub):
+    """Testing the provision_ec2_instance method."""
     security_group = create_security_group(
         vpc_id="vpc-123abcd", os_type="Linux", ec2_client=ec2_client_stub
     )
@@ -147,6 +156,7 @@ def test_provision_ec2_instance(ec2_client_stub, iam_client_stub, ec2_resource_s
 
 
 def test_create_ssm_instance_profile(iam_client_stub):
+    """Testing the create_ssm_instance_profile method."""
     instance_profile = create_ssm_instance_profile(iam_client=iam_client_stub)
     assert isinstance(instance_profile, str)
     assert instance_profile == SSM_ROLE_NAME

@@ -1,4 +1,4 @@
-"""This file contains some of the AWS constructor methods that secure_ec2 use."""
+"""AWS constructor methods that secure_ec2 use."""
 
 import logging
 import sys

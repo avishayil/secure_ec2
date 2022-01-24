@@ -1,3 +1,5 @@
+"""Launch phase that is invoked from the command line and provisions an EC2 instance."""
+
 import logging
 import sys
 
@@ -15,7 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 class NumberValidator(Validator):
+    """Defines the number validation in the PyInquirer interactive wizard."""
+
     def validate(self, document):
+        """Method that defines the number validation."""
         try:
             int(document.text)
         except ValueError:
@@ -81,6 +86,7 @@ def launch(
     profile: str,
     region: str,
 ):
+    """Invoke the launch phase for the selected configuration and launch template properties."""
     ec2_client = get_boto3_client(region=region, profile=profile, service="ec2")
     iam_client = get_boto3_client(region=region, profile=profile, service="iam")
     ec2_resource = get_boto3_resource(region=region, profile=profile, service="ec2")

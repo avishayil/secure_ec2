@@ -1,4 +1,4 @@
-"""This file contains the methods that secure_ec2 use."""
+"""Methods that secure_ec2 use."""
 
 import json
 import logging

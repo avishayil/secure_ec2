@@ -1,1 +1,1 @@
-"""Main init module of the secure_ec2 package."""
+"""Root file for the src module of secure_ec2 package."""
