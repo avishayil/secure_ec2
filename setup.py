@@ -35,6 +35,7 @@ test_requirements = [
     "bump2version>=0.5.4",
     "tox>=3.24.5",
     "Sphinx>=4.4.0",
+    "flake8-docstrings>=1.6.0",
 ]
 
 setup(
