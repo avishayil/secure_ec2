@@ -44,18 +44,36 @@ def test_get_latest_ami_id(ec2_client_stub):
     assert isinstance(image_id, str)
 
 
-def test_create_security_group(ec2_client_stub):
+def test_create_security_group(ec2_client_stub, ec2_resource_stub):
     """Testing the create_security_group method."""
+    default_vpc_response = ec2_resource_stub.create_vpc(
+        CidrBlock="192.168.0.0/16",
+        InstanceTenancy="default",
+        TagSpecifications=[
+            {"ResourceType": "vpc", "Tags": [{"Key": "Name", "Value": "default"}]}
+        ],
+    )
+    default_vpc_id = default_vpc_response.id
+    ec2_resource_stub.create_subnet(CidrBlock="192.168.1.0/24", VpcId=default_vpc_id)
     security_group = create_security_group(
-        vpc_id="vpc-123abcd", os_type="Windows", ec2_client=ec2_client_stub
+        vpc_id=default_vpc_id, os_type="Windows", ec2_client=ec2_client_stub
     )
     assert isinstance(security_group["GroupId"], str)
 
 
-def test_get_latest_launch_template(ec2_client_stub):
+def test_get_latest_launch_template(ec2_client_stub, ec2_resource_stub):
     """Testing the get_latest_launch_template method."""
+    default_vpc_response = ec2_resource_stub.create_vpc(
+        CidrBlock="192.168.0.0/16",
+        InstanceTenancy="default",
+        TagSpecifications=[
+            {"ResourceType": "vpc", "Tags": [{"Key": "Name", "Value": "default"}]}
+        ],
+    )
+    default_vpc_id = default_vpc_response.id
+    ec2_resource_stub.create_subnet(CidrBlock="192.168.1.0/24", VpcId=default_vpc_id)
     security_group = create_security_group(
-        vpc_id="vpc-123abcd", os_type="Windows", ec2_client=ec2_client_stub
+        vpc_id=default_vpc_id, os_type="Windows", ec2_client=ec2_client_stub
     )
     ec2_client_stub.copy_image(
         Name="amzn2-ami-hvm-2.0-test",
@@ -82,7 +100,7 @@ def test_get_latest_launch_template(ec2_client_stub):
             "NetworkInterfaces": [
                 {
                     "SubnetId": get_subnet_id(
-                        vpc_id="vpc-123abcd", ec2_client=ec2_client_stub
+                        vpc_id=default_vpc_id, ec2_client=ec2_client_stub
                     ),
                     "DeviceIndex": 0,
                     "AssociatePublicIpAddress": True,
@@ -103,8 +121,17 @@ def test_get_latest_launch_template(ec2_client_stub):
 
 def test_provision_ec2_instance(ec2_client_stub, iam_client_stub, ec2_resource_stub):
     """Testing the provision_ec2_instance method."""
+    default_vpc_response = ec2_resource_stub.create_vpc(
+        CidrBlock="192.168.0.0/16",
+        InstanceTenancy="default",
+        TagSpecifications=[
+            {"ResourceType": "vpc", "Tags": [{"Key": "Name", "Value": "default"}]}
+        ],
+    )
+    default_vpc_id = default_vpc_response.id
+    ec2_resource_stub.create_subnet(CidrBlock="192.168.1.0/24", VpcId=default_vpc_id)
     security_group = create_security_group(
-        vpc_id="vpc-123abcd", os_type="Linux", ec2_client=ec2_client_stub
+        vpc_id=default_vpc_id, os_type="Linux", ec2_client=ec2_client_stub
     )
     ec2_client_stub.copy_image(
         Name="amzn2-ami-hvm-2.0-test",
@@ -133,7 +160,7 @@ def test_provision_ec2_instance(ec2_client_stub, iam_client_stub, ec2_resource_s
             "NetworkInterfaces": [
                 {
                     "SubnetId": get_subnet_id(
-                        vpc_id="vpc-123abcd", ec2_client=ec2_client_stub
+                        vpc_id=default_vpc_id, ec2_client=ec2_client_stub
                     ),
                     "DeviceIndex": 0,
                     "AssociatePublicIpAddress": True,
