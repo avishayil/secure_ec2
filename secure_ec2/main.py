@@ -5,9 +5,9 @@ import sys
 
 import click
 
+from secure_ec2 import __version__
 from secure_ec2.commands.config import config
 from secure_ec2.commands.launch import launch
-from secure_ec2.version import __version__
 
 sys.tracebacklimit = 0
 
