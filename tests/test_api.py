@@ -3,7 +3,7 @@
 from secure_ec2.src.api import (
     create_security_group,
     create_ssm_instance_profile,
-    get_default_vpc,
+    get_default_vpc_id,
     get_key_pairs,
     get_latest_ami_id,
     get_latest_launch_template,
@@ -22,14 +22,14 @@ def test_get_key_pairs(ec2_client_stub):
 
 def test_get_subnet_id(ec2_client_stub):
     """Testing the get_subnet_id method."""
-    vpc_id = get_default_vpc(ec2_client=ec2_client_stub)
+    vpc_id = get_default_vpc_id(ec2_client=ec2_client_stub)
     subnet_id = get_subnet_id(vpc_id=vpc_id, ec2_client=ec2_client_stub)
     assert isinstance(subnet_id, str)
 
 
 def test_get_default_vpc(ec2_client_stub):
     """Testing the get_default_vpc method."""
-    vpc_id = get_default_vpc(ec2_client=ec2_client_stub)
+    vpc_id = get_default_vpc_id(ec2_client=ec2_client_stub)
     assert isinstance(vpc_id, str)
 
 
@@ -46,15 +46,7 @@ def test_get_latest_ami_id(ec2_client_stub):
 
 def test_create_security_group(ec2_client_stub, ec2_resource_stub):
     """Testing the create_security_group method."""
-    default_vpc_response = ec2_resource_stub.create_vpc(
-        CidrBlock="192.168.0.0/16",
-        InstanceTenancy="default",
-        TagSpecifications=[
-            {"ResourceType": "vpc", "Tags": [{"Key": "Name", "Value": "default"}]}
-        ],
-    )
-    default_vpc_id = default_vpc_response.id
-    ec2_resource_stub.create_subnet(CidrBlock="192.168.1.0/24", VpcId=default_vpc_id)
+    default_vpc_id = get_default_vpc_id(ec2_client=ec2_client_stub)
     security_group = create_security_group(
         vpc_id=default_vpc_id, os_type="Windows", ec2_client=ec2_client_stub
     )
@@ -63,15 +55,7 @@ def test_create_security_group(ec2_client_stub, ec2_resource_stub):
 
 def test_get_latest_launch_template(ec2_client_stub, ec2_resource_stub):
     """Testing the get_latest_launch_template method."""
-    default_vpc_response = ec2_resource_stub.create_vpc(
-        CidrBlock="192.168.0.0/16",
-        InstanceTenancy="default",
-        TagSpecifications=[
-            {"ResourceType": "vpc", "Tags": [{"Key": "Name", "Value": "default"}]}
-        ],
-    )
-    default_vpc_id = default_vpc_response.id
-    ec2_resource_stub.create_subnet(CidrBlock="192.168.1.0/24", VpcId=default_vpc_id)
+    default_vpc_id = get_default_vpc_id(ec2_client=ec2_client_stub)
     security_group = create_security_group(
         vpc_id=default_vpc_id, os_type="Windows", ec2_client=ec2_client_stub
     )
@@ -121,15 +105,7 @@ def test_get_latest_launch_template(ec2_client_stub, ec2_resource_stub):
 
 def test_provision_ec2_instance(ec2_client_stub, iam_client_stub, ec2_resource_stub):
     """Testing the provision_ec2_instance method."""
-    default_vpc_response = ec2_resource_stub.create_vpc(
-        CidrBlock="192.168.0.0/16",
-        InstanceTenancy="default",
-        TagSpecifications=[
-            {"ResourceType": "vpc", "Tags": [{"Key": "Name", "Value": "default"}]}
-        ],
-    )
-    default_vpc_id = default_vpc_response.id
-    ec2_resource_stub.create_subnet(CidrBlock="192.168.1.0/24", VpcId=default_vpc_id)
+    default_vpc_id = get_default_vpc_id(ec2_client=ec2_client_stub)
     security_group = create_security_group(
         vpc_id=default_vpc_id, os_type="Linux", ec2_client=ec2_client_stub
     )

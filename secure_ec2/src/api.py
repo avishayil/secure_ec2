@@ -119,7 +119,7 @@ def get_subnet_id(vpc_id: str, ec2_client: boto3.client) -> str:
         return describe_subnets_response["Subnets"][-1]["SubnetId"]
 
 
-def get_default_vpc(ec2_client: boto3.client) -> str:
+def get_default_vpc_id(ec2_client: boto3.client) -> str:
     """Return the default VPC ID of the current operating region."""
     with Halo(text="Looking for default VPC\r\n", spinner="dots"):
         logger.debug("Looking for default VPC")
@@ -262,7 +262,7 @@ def create_launch_template(
 ) -> Any:
     """Create a secure launch template that could be later used by the instance launch phase."""
     image_id = get_latest_ami_id(os_type=os_type, ec2_client=ec2_client)
-    vpc_id = get_default_vpc(ec2_client=ec2_client)
+    vpc_id = get_default_vpc_id(ec2_client=ec2_client)
     subnet_id = get_subnet_id(vpc_id=vpc_id, ec2_client=ec2_client)
     security_group = create_security_group(
         vpc_id=vpc_id, os_type=os_type, ec2_client=ec2_client
