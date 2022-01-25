@@ -1,6 +1,5 @@
 """Launch phase that is invoked from the command line and provisions an EC2 instance."""
 
-import logging
 import sys
 
 import click
@@ -12,8 +11,7 @@ from secure_ec2.src.api import (
     provision_ec2_instance,
 )
 from secure_ec2.src.aws import get_boto3_client, get_boto3_resource
-
-logger = logging.getLogger(__name__)
+from secure_ec2.src.base_logger import logger
 
 
 class NumberValidator(Validator):

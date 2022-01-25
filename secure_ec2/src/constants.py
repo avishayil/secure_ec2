@@ -14,3 +14,4 @@ EC2_TRUST_RELATIONSHIP = {
         }
     ],
 }
+LOGGING_FILE_NAME = ".secure_ec2.log"
