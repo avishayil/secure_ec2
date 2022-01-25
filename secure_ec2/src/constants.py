@@ -1,3 +1,5 @@
+"""Constant variables that secure_ec2 use."""
+
 MODULE_NAME = "secure_ec2"
 LAUNCH_TEMPLATE_SUFFIX = "tpl"
 SSM_ROLE_NAME = "SessionManagerInstanceProfile"

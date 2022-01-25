@@ -1,3 +1,5 @@
+"""Methods that secure_ec2 use."""
+
 import json
 import logging
 from operator import itemgetter
@@ -33,6 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_ssm_instance_profile(iam_client: boto3.client) -> str:
+    """Create an instance profile for connecting to the instance via AWS Session Manager."""
     with Halo(text="Creating IAM role for Session Manager\r\n", spinner="dots"):
         logger.debug("Creating IAM Role for Session Manager")
         try:
@@ -80,6 +83,7 @@ def create_ssm_instance_profile(iam_client: boto3.client) -> str:
 
 
 def get_key_pairs(ec2_client: boto3.client) -> list:
+    """Discover the list of EC2 keypairs in the current operating region."""
     key_pair_list = []
     with Halo(text="Getting keypairs\r\n", spinner="dots"):
         logger.debug("Getting keypairs")
@@ -93,11 +97,21 @@ def get_key_pairs(ec2_client: boto3.client) -> list:
     return key_pair_list
 
 
-def get_subnet_id(ec2_client: boto3.client) -> str:
+def get_subnet_id(vpc_id: str, ec2_client: boto3.client) -> str:
+    """Try to return the default subnet of the given VPC ID."""
     with Halo(text="Getting subnet\r\n", spinner="dots"):
         logger.debug("Getting subnet")
         try:
-            describe_subnets_response = ec2_client.describe_subnets()
+            describe_subnets_response = ec2_client.describe_subnets(
+                Filters=[
+                    {
+                        "Name": "vpc-id",
+                        "Values": [
+                            vpc_id,
+                        ],
+                    },
+                ],
+            )
         except ClientError as error:
             logger.error(f"\r\nError getting subnet: {error}")
             exit(1)
@@ -105,7 +119,8 @@ def get_subnet_id(ec2_client: boto3.client) -> str:
         return describe_subnets_response["Subnets"][-1]["SubnetId"]
 
 
-def get_default_vpc(ec2_client: boto3.client) -> str:
+def get_default_vpc_id(ec2_client: boto3.client) -> str:
+    """Return the default VPC ID of the current operating region."""
     with Halo(text="Looking for default VPC\r\n", spinner="dots"):
         logger.debug("Looking for default VPC")
         try:
@@ -121,6 +136,7 @@ def get_default_vpc(ec2_client: boto3.client) -> str:
 
 
 def create_security_group(vpc_id: str, os_type: str, ec2_client: boto3.client) -> Any:
+    """Create a security group that allow access to the needed OS type from the public IP of the computer."""
     security_group_name = f"{get_username()}-sg"
 
     with Halo(text="Creating security group\r\n", spinner="dots"):
@@ -185,6 +201,7 @@ def create_security_group(vpc_id: str, os_type: str, ec2_client: boto3.client) -
 
 
 def get_latest_launch_template(os_type: str, ec2_client: boto3.client) -> Any:
+    """Return the latest version of the launch template created by the configuration phase."""
     try:
         ec2_response = ec2_client.describe_launch_templates(
             LaunchTemplateNames=[
@@ -203,6 +220,7 @@ def get_latest_launch_template(os_type: str, ec2_client: boto3.client) -> Any:
 
 
 def get_latest_ami_id(os_type: str, ec2_client: any) -> str:
+    """Return the latest AMI ID, considered by the chosen operating system."""
     os_regex = get_os_regex(os_type=os_type)
 
     with Halo(text=f"Getting latest {os_type} AMI\r\n", spinner="dots"):
@@ -242,9 +260,10 @@ def create_launch_template(
     os_type: str,
     ec2_client: boto3.client,
 ) -> Any:
+    """Create a secure launch template that could be later used by the instance launch phase."""
     image_id = get_latest_ami_id(os_type=os_type, ec2_client=ec2_client)
-    vpc_id = get_default_vpc(ec2_client=ec2_client)
-    subnet_id = get_subnet_id(ec2_client=ec2_client)
+    vpc_id = get_default_vpc_id(ec2_client=ec2_client)
+    subnet_id = get_subnet_id(vpc_id=vpc_id, ec2_client=ec2_client)
     security_group = create_security_group(
         vpc_id=vpc_id, os_type=os_type, ec2_client=ec2_client
     )
@@ -384,6 +403,7 @@ def provision_ec2_instance(
     ec2_resource: boto3.resource,
     no_clip: bool = False,
 ) -> str:
+    """Provision an EC2 instance according to launch template configurations."""
     if keypair == "None":
         with Halo(text="Provisioning instance with SSM access\r\n", spinner="dots"):
             logger.debug("Provisioning instance with SSM access")
@@ -417,16 +437,6 @@ def provision_ec2_instance(
                 exit(1)
             logger.debug("Associating instance profile with the instance")
             try:
-                if not no_clip:
-                    pyperclip.copy(
-                        construct_session_manager_url(
-                            instance_id=instance_id,
-                            region=get_region_from_boto3_client(
-                                boto3_client=ec2_client
-                            ),
-                        )
-                    )
-                    click.echo("The link is on your clipboard")
                 ec2_client.associate_iam_instance_profile(
                     IamInstanceProfile={"Name": instance_profile},
                     InstanceId=instance_id,
@@ -436,6 +446,17 @@ def provision_ec2_instance(
                     f"Error associating instance profile with the instance: {error}"
                 )
                 exit(1)
+            click.echo(
+                f"Instance {instance_id} provisioned successfully. Connect securely using Session Manager:\r\n{construct_session_manager_url(instance_id=instance_id, region=get_region_from_boto3_client(boto3_client=ec2_client))}"  # noqa: E501
+            )
+            if not no_clip:
+                pyperclip.copy(
+                    construct_session_manager_url(
+                        instance_id=instance_id,
+                        region=get_region_from_boto3_client(boto3_client=ec2_client),
+                    )
+                )
+                click.echo("The link is on your clipboard")
 
     else:
         with Halo(text="Provisioning instance with Keypair access\r\n", spinner="dots"):

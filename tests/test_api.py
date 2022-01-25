@@ -1,7 +1,9 @@
+"""Tests definition for the API methods that secure_ec2 use."""
+
 from secure_ec2.src.api import (
     create_security_group,
     create_ssm_instance_profile,
-    get_default_vpc,
+    get_default_vpc_id,
     get_key_pairs,
     get_latest_ami_id,
     get_latest_launch_template,
@@ -13,21 +15,26 @@ from secure_ec2.src.helpers import get_launch_template_name, get_username
 
 
 def test_get_key_pairs(ec2_client_stub):
+    """Testing the get_key_pairs method."""
     key_pairs = get_key_pairs(ec2_client=ec2_client_stub)
     assert isinstance(key_pairs, list)
 
 
 def test_get_subnet_id(ec2_client_stub):
-    subnet_id = get_subnet_id(ec2_client=ec2_client_stub)
+    """Testing the get_subnet_id method."""
+    vpc_id = get_default_vpc_id(ec2_client=ec2_client_stub)
+    subnet_id = get_subnet_id(vpc_id=vpc_id, ec2_client=ec2_client_stub)
     assert isinstance(subnet_id, str)
 
 
 def test_get_default_vpc(ec2_client_stub):
-    vpc_id = get_default_vpc(ec2_client=ec2_client_stub)
+    """Testing the get_default_vpc method."""
+    vpc_id = get_default_vpc_id(ec2_client=ec2_client_stub)
     assert isinstance(vpc_id, str)
 
 
 def test_get_latest_ami_id(ec2_client_stub):
+    """Testing the get_latest_ami_id method."""
     ec2_client_stub.copy_image(
         Name="amzn2-ami-hvm-2.0-test",
         SourceImageId="ami-000c540e28953ace2",
@@ -38,15 +45,19 @@ def test_get_latest_ami_id(ec2_client_stub):
 
 
 def test_create_security_group(ec2_client_stub):
+    """Testing the create_security_group method."""
+    default_vpc_id = get_default_vpc_id(ec2_client=ec2_client_stub)
     security_group = create_security_group(
-        vpc_id="vpc-123abcd", os_type="Windows", ec2_client=ec2_client_stub
+        vpc_id=default_vpc_id, os_type="Windows", ec2_client=ec2_client_stub
     )
     assert isinstance(security_group["GroupId"], str)
 
 
 def test_get_latest_launch_template(ec2_client_stub):
+    """Testing the get_latest_launch_template method."""
+    default_vpc_id = get_default_vpc_id(ec2_client=ec2_client_stub)
     security_group = create_security_group(
-        vpc_id="vpc-123abcd", os_type="Windows", ec2_client=ec2_client_stub
+        vpc_id=default_vpc_id, os_type="Windows", ec2_client=ec2_client_stub
     )
     ec2_client_stub.copy_image(
         Name="amzn2-ami-hvm-2.0-test",
@@ -72,7 +83,9 @@ def test_get_latest_launch_template(ec2_client_stub):
             ],
             "NetworkInterfaces": [
                 {
-                    "SubnetId": get_subnet_id(ec2_client=ec2_client_stub),
+                    "SubnetId": get_subnet_id(
+                        vpc_id=default_vpc_id, ec2_client=ec2_client_stub
+                    ),
                     "DeviceIndex": 0,
                     "AssociatePublicIpAddress": True,
                     "Groups": [security_group["GroupId"]],
@@ -91,8 +104,10 @@ def test_get_latest_launch_template(ec2_client_stub):
 
 
 def test_provision_ec2_instance(ec2_client_stub, iam_client_stub, ec2_resource_stub):
+    """Testing the provision_ec2_instance method."""
+    default_vpc_id = get_default_vpc_id(ec2_client=ec2_client_stub)
     security_group = create_security_group(
-        vpc_id="vpc-123abcd", os_type="Linux", ec2_client=ec2_client_stub
+        vpc_id=default_vpc_id, os_type="Linux", ec2_client=ec2_client_stub
     )
     ec2_client_stub.copy_image(
         Name="amzn2-ami-hvm-2.0-test",
@@ -120,7 +135,9 @@ def test_provision_ec2_instance(ec2_client_stub, iam_client_stub, ec2_resource_s
             ],
             "NetworkInterfaces": [
                 {
-                    "SubnetId": get_subnet_id(ec2_client=ec2_client_stub),
+                    "SubnetId": get_subnet_id(
+                        vpc_id=default_vpc_id, ec2_client=ec2_client_stub
+                    ),
                     "DeviceIndex": 0,
                     "AssociatePublicIpAddress": True,
                     "Groups": [security_group["GroupId"]],
@@ -147,6 +164,7 @@ def test_provision_ec2_instance(ec2_client_stub, iam_client_stub, ec2_resource_s
 
 
 def test_create_ssm_instance_profile(iam_client_stub):
+    """Testing the create_ssm_instance_profile method."""
     instance_profile = create_ssm_instance_profile(iam_client=iam_client_stub)
     assert isinstance(instance_profile, str)
     assert instance_profile == SSM_ROLE_NAME

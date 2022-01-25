@@ -1,3 +1,5 @@
+"""Tests definition for the command invocations that secure_ec2 use."""
+
 from click.testing import CliRunner
 
 from secure_ec2.commands.config import config
@@ -5,7 +7,7 @@ from secure_ec2.commands.launch import launch
 
 
 def test_config_happy_windows(ec2_client_stub):
-
+    """Tests the happy path of Windows EC2 launch template provisioning."""
     ec2_client_stub.copy_image(
         Name="Windows_Server-2019-English-Full-Base-test",
         SourceImageId="ami-000c540e28953ace2",
@@ -22,7 +24,7 @@ def test_config_happy_windows(ec2_client_stub):
 
 
 def test_config_happy_linux(ec2_client_stub):
-
+    """Tests the happy path of Linux EC2 launch template provisioning."""
     ec2_client_stub.copy_image(
         Name="amzn2-ami-hvm-2.0-test",
         SourceImageId="ami-000c540e28953ace2",
@@ -39,7 +41,7 @@ def test_config_happy_linux(ec2_client_stub):
 
 
 def test_launch_happy_linux(ec2_client_stub):
-
+    """Tests the happy path of Linux EC2 instance provisioning."""
     ec2_client_stub.copy_image(
         Name="amzn2-ami-hvm-2.0-test",
         SourceImageId="ami-000c540e28953ace2",
@@ -66,7 +68,7 @@ def test_launch_happy_linux(ec2_client_stub):
 
 
 def test_launch_happy_windows(ec2_client_stub):
-
+    """Tests the happy path of Windows EC2 instance provisioning."""
     ec2_client_stub.copy_image(
         Name="Windows_Server-2019-English-Full-Base-test",
         SourceImageId="ami-000c540e28953ace2",
@@ -93,7 +95,7 @@ def test_launch_happy_windows(ec2_client_stub):
 
 
 def test_config_incorrent_os():
-
+    """Tests failure when incorrect OS is passed."""
     runner = CliRunner()
     config_result = runner.invoke(
         config,
@@ -104,7 +106,7 @@ def test_config_incorrent_os():
 
 
 def test_launch_happy_linux_ssm(ec2_client_stub):
-
+    """Tests the happy path of Linux EC2 instance provisioning with Session Manager."""
     ec2_client_stub.copy_image(
         Name="amzn2-ami-hvm-2.0-test",
         SourceImageId="ami-000c540e28953ace2",
@@ -131,7 +133,7 @@ def test_launch_happy_linux_ssm(ec2_client_stub):
 
 
 def test_launch_happy_windows_ssm(ec2_client_stub):
-
+    """Tests the happy path of Windows EC2 instance provisioning with Session Manager."""
     ec2_client_stub.copy_image(
         Name="Windows_Server-2019-English-Full-Base-test",
         SourceImageId="ami-000c540e28953ace2",

@@ -1,3 +1,5 @@
+"""AWS constructor methods that secure_ec2 use."""
+
 import logging
 import sys
 
@@ -10,7 +12,7 @@ logger = logging.getLogger(__name__)
 def get_boto3_client(
     service: str, profile: str = None, region: str = "us-east-1"
 ) -> boto3.Session.client:
-    """Get a boto3 client for a given service"""
+    """Get a boto3 client for a given service."""
     logging.getLogger("botocore").setLevel(logging.CRITICAL)
     session_data = {"region_name": region}
     if profile:
@@ -30,7 +32,7 @@ def get_boto3_client(
 def get_boto3_resource(
     service: str, profile: str = None, region: str = "us-east-1"
 ) -> boto3.Session.resource:
-    """Get a boto3 resource for a given service"""
+    """Get a boto3 resource for a given service."""
     logging.getLogger("botocore").setLevel(logging.CRITICAL)
     session_data = {"region_name": region}
     if profile:
@@ -77,5 +79,6 @@ def construct_console_connect_url(instance_id: str, region: str = "us-east-1") -
 
 
 def get_region_from_boto3_client(boto3_client: boto3.client):
+    """Extract the current operating region from the boto3 client."""
     current_region = boto3_client.meta.region_name
     return current_region
