@@ -44,7 +44,7 @@ def test_get_latest_ami_id(ec2_client_stub):
     assert isinstance(image_id, str)
 
 
-def test_create_security_group(ec2_client_stub, ec2_resource_stub):
+def test_create_security_group(ec2_client_stub):
     """Testing the create_security_group method."""
     default_vpc_id = get_default_vpc_id(ec2_client=ec2_client_stub)
     security_group = create_security_group(
@@ -53,7 +53,7 @@ def test_create_security_group(ec2_client_stub, ec2_resource_stub):
     assert isinstance(security_group["GroupId"], str)
 
 
-def test_get_latest_launch_template(ec2_client_stub, ec2_resource_stub):
+def test_get_latest_launch_template(ec2_client_stub):
     """Testing the get_latest_launch_template method."""
     default_vpc_id = get_default_vpc_id(ec2_client=ec2_client_stub)
     security_group = create_security_group(
