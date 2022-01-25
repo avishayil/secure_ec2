@@ -23,11 +23,11 @@ def get_username() -> str:
     return formatted_user_name
 
 
+@Halo(text="Discovering endpoint public IP address\r\n", spinner="dots")
 def get_ip_address() -> str:
     """Get the public IP address of the computer."""
-    with Halo(text="Getting IP address\r\n", spinner="dots"):
-        ip_address = requests.get("http://checkip.amazonaws.com").text.rstrip()
-        return ip_address
+    ip_address = requests.get("http://checkip.amazonaws.com").text.rstrip()
+    return ip_address
 
 
 def get_os_regex(os_type: str) -> str:
