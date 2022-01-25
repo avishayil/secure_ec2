@@ -2,6 +2,13 @@
 History
 =======
 
+0.0.6 (2022-01-26)
+------------------
+
+* Allow connection via Session Manager, copying the Session Manager console link to the clipboard
+* Create launch templates to create and persist configurations
+* Refactor to the app logic
+
 0.0.5 (2022-01-18)
 ------------------
 
