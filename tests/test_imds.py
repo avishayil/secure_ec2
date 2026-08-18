@@ -4,10 +4,7 @@ import pytest
 
 from secure_ec2.src.api import create_launch_template, get_latest_launch_template
 from secure_ec2.src.constants import MetadataOptions
-from secure_ec2.src.helpers import (
-    build_metadata_options,
-    normalize_metadata_options,
-)
+from secure_ec2.src.helpers import build_metadata_options, normalize_metadata_options
 
 
 def _get_metadata_options(ec2_client, os_type: str) -> dict:
