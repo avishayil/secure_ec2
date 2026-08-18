@@ -19,11 +19,14 @@ from secure_ec2.src.aws import (
 from secure_ec2.src.base_logger import logger
 from secure_ec2.src.constants import (
     AMAZON_AMI_OWNER_ID,
+    DEFAULT_METADATA_OPTIONS,
     EC2_TRUST_RELATIONSHIP,
     MODULE_NAME,
     SSM_ROLE_NAME,
+    MetadataOptions,
 )
 from secure_ec2.src.helpers import (
+    build_metadata_options,
     get_connection_port,
     get_ip_address,
     get_launch_template_name,
@@ -236,9 +239,9 @@ def get_latest_launch_template(os_type: str, ec2_client: boto3.client) -> Any:
         )
     except ClientError as error:
         logger.error(
-            f"Error fetching launch template {get_launch_template_name(os_type=os_type)}, \
-                please make sure that the launch template exist or run `secure_ec2 config` to generate it",
-            error,
+            f"Error fetching launch template {get_launch_template_name(os_type=os_type)}, "
+            "please make sure that the launch template exist or run "
+            f"`secure_ec2 config` to generate it: {error}"
         )
         click.echo("\r\nError fetching launch template, see the logs for more details.")
         exit(1)
@@ -288,8 +291,15 @@ def get_latest_ami_id(os_type: str, ec2_client: any) -> str:
 def create_launch_template(
     os_type: str,
     ec2_client: boto3.client,
+    metadata_options: MetadataOptions = DEFAULT_METADATA_OPTIONS,
 ) -> Any:
-    """Create a secure launch template that could be later used by the instance launch phase."""
+    """Create a secure launch template that could be later used by the instance launch phase.
+
+    ``metadata_options`` controls the Instance Metadata Service (IMDS) configuration.
+    It defaults to enforcing IMDSv2 (HttpTokens=required); it can also allow legacy
+    IMDSv1 or disable the endpoint entirely when no instance role is needed.
+    """
+    imds_block = build_metadata_options(metadata_options)
     image_id = get_latest_ami_id(os_type=os_type, ec2_client=ec2_client)
     vpc_id = get_default_vpc_id(ec2_client=ec2_client)
     subnet_id = get_subnet_id(vpc_id=vpc_id, ec2_client=ec2_client)
@@ -326,6 +336,7 @@ def create_launch_template(
                 ],
                 "ImageId": image_id,
                 "Monitoring": {"Enabled": False},
+                "MetadataOptions": imds_block,
                 "TagSpecifications": [
                     {
                         "ResourceType": "instance",
@@ -382,6 +393,7 @@ def create_launch_template(
                         ],
                         "ImageId": image_id,
                         "Monitoring": {"Enabled": False},
+                        "MetadataOptions": imds_block,
                         "TagSpecifications": [
                             {
                                 "ResourceType": "instance",
@@ -441,47 +453,85 @@ def provision_ec2_instance(
     iam_client: boto3.client,
     ec2_resource: boto3.resource,
     no_clip: bool = False,
+    instance_profile: str = None,
 ) -> str:
-    """Provision an EC2 instance according to launch template configurations."""
+    """Provision an EC2 instance according to launch template configurations.
+
+    When ``keypair`` is ``"None"`` the instance is provisioned for Session Manager
+    access. If a pre-defined ``instance_profile`` name is supplied it is attached at
+    launch time via ``run_instances`` (faster, avoids a race with the SSM agent);
+    otherwise a dedicated Session Manager instance profile is created and associated
+    after the instance reaches the running state.
+    """
     if keypair == "None":
-        logger.debug("Provisioning instance with SSM access")
-        ec2_response = ec2_client.run_instances(
-            LaunchTemplate={
-                "LaunchTemplateName": launch_template["LaunchTemplateName"],
-            },
-            InstanceType=instance_type,
-            MaxCount=num_instances,
-            MinCount=num_instances,
-        )
-        instance_id = ec2_response["Instances"][0]["InstanceId"]
+        if instance_profile:
+            logger.debug(
+                "Provisioning instance with pre-defined instance profile "
+                f"'{instance_profile}' at launch time"
+            )
+            try:
+                ec2_response = ec2_client.run_instances(
+                    LaunchTemplate={
+                        "LaunchTemplateName": launch_template["LaunchTemplateName"],
+                    },
+                    InstanceType=instance_type,
+                    MaxCount=num_instances,
+                    MinCount=num_instances,
+                    IamInstanceProfile={"Name": instance_profile},
+                )
+            except ClientError as error:
+                logger.error(
+                    f"Error provisioning instance with pre-defined instance profile: {error}"
+                )
+                click.echo(
+                    "\r\nError provisioning instance with pre-defined instance profile, see the logs for more details."
+                )
+                exit(1)
+            instance_id = ec2_response["Instances"][0]["InstanceId"]
 
-        logger.debug("Waiting for instance to be in running state")
-        ec2_resource.Instance(instance_id).wait_until_running()
+            logger.debug("Waiting for instance to be in running state")
+            ec2_resource.Instance(instance_id).wait_until_running()
+        else:
+            logger.debug("Provisioning instance with SSM access")
+            ec2_response = ec2_client.run_instances(
+                LaunchTemplate={
+                    "LaunchTemplateName": launch_template["LaunchTemplateName"],
+                },
+                InstanceType=instance_type,
+                MaxCount=num_instances,
+                MinCount=num_instances,
+            )
+            instance_id = ec2_response["Instances"][0]["InstanceId"]
 
-        logger.debug("Creating SSM instance profile and associating with the instance")
-        logger.debug("Creating SSM instance profile")
-        try:
-            instance_profile = create_ssm_instance_profile(iam_client=iam_client)
-        except ClientError as error:
-            logger.error(f"Error creating SSM instance profile: {error}")
-            click.echo(
-                "\r\nError creating SSM instance profile, see the logs for more details."
+            logger.debug("Waiting for instance to be in running state")
+            ec2_resource.Instance(instance_id).wait_until_running()
+
+            logger.debug(
+                "Creating SSM instance profile and associating with the instance"
             )
-            exit(1)
-        logger.debug("Associating instance profile with the instance")
-        try:
-            ec2_client.associate_iam_instance_profile(
-                IamInstanceProfile={"Name": instance_profile},
-                InstanceId=instance_id,
-            )
-        except ClientError as error:
-            logger.error(
-                f"Error associating instance profile with the instance: {error}"
-            )
-            click.echo(
-                "\r\nError associating instance profile with the instance, see the logs for more details."
-            )
-            exit(1)
+            logger.debug("Creating SSM instance profile")
+            try:
+                created_profile = create_ssm_instance_profile(iam_client=iam_client)
+            except ClientError as error:
+                logger.error(f"Error creating SSM instance profile: {error}")
+                click.echo(
+                    "\r\nError creating SSM instance profile, see the logs for more details."
+                )
+                exit(1)
+            logger.debug("Associating instance profile with the instance")
+            try:
+                ec2_client.associate_iam_instance_profile(
+                    IamInstanceProfile={"Name": created_profile},
+                    InstanceId=instance_id,
+                )
+            except ClientError as error:
+                logger.error(
+                    f"Error associating instance profile with the instance: {error}"
+                )
+                click.echo(
+                    "\r\nError associating instance profile with the instance, see the logs for more details."
+                )
+                exit(1)
         click.echo(
             f"\r\nInstance {instance_id} provisioned successfully. Connect securely using Session Manager:\r\n{construct_session_manager_url(instance_id=instance_id, region=get_region_from_boto3_client(boto3_client=ec2_client))}"  # noqa: E501
         )

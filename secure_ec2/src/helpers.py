@@ -6,7 +6,11 @@ import re
 import requests
 from halo import Halo
 
-from secure_ec2.src.constants import LAUNCH_TEMPLATE_SUFFIX, MODULE_NAME
+from secure_ec2.src.constants import (
+    LAUNCH_TEMPLATE_SUFFIX,
+    MODULE_NAME,
+    MetadataOptions,
+)
 
 
 def get_connection_port(os_type: str) -> int:
@@ -45,3 +49,36 @@ def get_launch_template_name(os_type: str) -> str:
     """Build the launch template name by concatenating the username and suffix."""
     local_username = get_username()
     return f"{local_username}-{MODULE_NAME}-{os_type.lower()}-{LAUNCH_TEMPLATE_SUFFIX}"
+
+
+def normalize_metadata_options(value) -> MetadataOptions:
+    """Normalize a string / enum into a MetadataOptions member.
+
+    Accepts a MetadataOptions instance (returned as-is) or a string matching
+    an enum value ("v2", "v1v2", "disabled"), case-insensitively.
+    """
+    if isinstance(value, MetadataOptions):
+        return value
+    try:
+        return MetadataOptions(str(value).strip().lower())
+    except ValueError as error:
+        raise ValueError(
+            f"{value!r} is not a valid IMDS metadata option. "
+            f"Expected one of: {[option.value for option in MetadataOptions]}"
+        ) from error
+
+
+def build_metadata_options(metadata_options: MetadataOptions) -> dict:
+    """Translate a MetadataOptions member into an EC2 LaunchTemplate MetadataOptions block.
+
+    IMDSv2 is enforced (HttpTokens=required) for every option except V1ANDV2,
+    and the IMDS endpoint is disabled entirely for DISABLED.
+    """
+    metadata_options = normalize_metadata_options(metadata_options)
+    is_disabled = metadata_options == MetadataOptions.DISABLED
+    accepts_v1 = metadata_options == MetadataOptions.V1ANDV2
+    return {
+        "HttpEndpoint": "disabled" if is_disabled else "enabled",
+        "HttpTokens": "optional" if accepts_v1 else "required",
+        "HttpPutResponseHopLimit": 1,
+    }

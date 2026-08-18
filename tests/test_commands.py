@@ -2,6 +2,8 @@
 
 from click.testing import CliRunner
 
+from secure_ec2.commands import config as config_module
+from secure_ec2.commands import launch as launch_module
 from secure_ec2.commands.config import config
 from secure_ec2.commands.launch import launch
 
@@ -129,6 +131,61 @@ def test_launch_happy_linux_ssm(ec2_client_stub):
         ["-t", "Linux", "-n", "1", "-k", "None", "-i", "t2.micro", "-nc"],
     )
 
+    assert launch_result.exit_code == 0
+
+
+def test_config_interactive_prompt_stubbed(ec2_client_stub, monkeypatch):
+    """Interactive config path works with the InquirerPy prompt stubbed out."""
+    ec2_client_stub.copy_image(
+        Name="amzn2-ami-hvm-2.0-test",
+        SourceImageId="ami-000c540e28953ace2",
+        SourceRegion="us-east-1",
+    )
+
+    monkeypatch.setattr(
+        config_module,
+        "prompt",
+        lambda questions: {"os_type": "Linux", "imds": "disabled"},
+    )
+
+    runner = CliRunner()
+    config_result = runner.invoke(config, [])
+    assert config_result.exit_code == 0
+
+    # The stubbed IMDS choice must be reflected on the launch template.
+    template = ec2_client_stub.describe_launch_templates()["LaunchTemplates"][0]
+    versions = ec2_client_stub.describe_launch_template_versions(
+        LaunchTemplateId=template["LaunchTemplateId"], Versions=["$Default"]
+    )["LaunchTemplateVersions"]
+    metadata = versions[0]["LaunchTemplateData"]["MetadataOptions"]
+    assert metadata["HttpEndpoint"] == "disabled"
+
+
+def test_launch_interactive_prompt_stubbed(ec2_client_stub, monkeypatch):
+    """Interactive launch path works with the InquirerPy prompt stubbed out."""
+    ec2_client_stub.copy_image(
+        Name="amzn2-ami-hvm-2.0-test",
+        SourceImageId="ami-000c540e28953ace2",
+        SourceRegion="us-east-1",
+    )
+
+    runner = CliRunner()
+    # Seed the launch template via the non-interactive config path.
+    runner.invoke(config, ["-t", "Linux"])
+
+    monkeypatch.setattr(
+        launch_module,
+        "prompt",
+        lambda questions: {
+            "os_type": "Linux",
+            "num_instances": 1,
+            "keypair": "None",
+            "instance_profile": "",
+            "instance_type": "t2.micro",
+        },
+    )
+
+    launch_result = runner.invoke(launch, ["-nc"])
     assert launch_result.exit_code == 0
 
 

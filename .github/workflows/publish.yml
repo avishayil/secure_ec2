@@ -7,31 +7,41 @@ on:
 
 jobs:
   build:
+    name: Build distribution
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v1
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.8
-      - name: Install dependencies
-        run: |
-          python -m pip install tox-travis pre-commit --user
-          pre-commit install
-      - name: Run pre-commit
-        run: |
-          pre-commit run -a
-      - name: Run tests
-        run: |
-          tox
-      - name: Install pypa/build
-        run: |
-          python -m pip install build --user
+          python-version: "3.12"
+      - name: Install build tooling
+        run: python -m pip install --upgrade build
       - name: Build a binary wheel and a source tarball
-        run: |
-          python -m build --sdist --wheel --outdir dist/
-      - name: Publish distribution 📦 to PyPI
-        uses: pypa/gh-action-pypi-publish@master
+        run: python -m build --sdist --wheel --outdir dist/
+      - name: Store the distribution packages
+        uses: actions/upload-artifact@v4
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          name: python-package-distributions
+          path: dist/
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/secure-ec2
+    permissions:
+      # IMPORTANT: this permission is mandatory for OIDC Trusted Publishing.
+      id-token: write
+    steps:
+      - name: Download the distribution packages
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+      - name: Publish distribution 📦 to PyPI
+        # Pinned to a release tag; authenticates via OIDC Trusted Publishing
+        # (no long-lived PYPI_API_TOKEN required).
+        uses: pypa/gh-action-pypi-publish@release/v1.12

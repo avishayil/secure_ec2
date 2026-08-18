@@ -3,7 +3,8 @@
 import sys
 
 import click
-from PyInquirer import Token, ValidationError, Validator, prompt, style_from_dict
+from InquirerPy import prompt
+from InquirerPy.validator import NumberValidator
 
 from secure_ec2.src.api import (
     get_key_pairs,
@@ -12,19 +13,6 @@ from secure_ec2.src.api import (
 )
 from secure_ec2.src.aws import get_boto3_client, get_boto3_resource
 from secure_ec2.src.base_logger import logger
-
-
-class NumberValidator(Validator):
-    """Defines the number validation in the PyInquirer interactive wizard."""
-
-    def validate(self, document):
-        """Method that defines the number validation."""
-        try:
-            int(document.text)
-        except ValueError:
-            raise ValidationError(
-                message="Please enter a number", cursor_position=len(document.text)
-            )
 
 
 @click.option(
@@ -51,6 +39,14 @@ class NumberValidator(Validator):
     "--instance_type",
     is_flag=False,
     help="Instance type, affects compute & networking performance",
+)
+@click.option(
+    "-ip",
+    "--instance_profile",
+    is_flag=False,
+    required=False,
+    default=None,
+    help="Pre-defined IAM instance profile to attach (Session Manager launches only)",
 )
 @click.option(
     "-nc",
@@ -80,6 +76,7 @@ def launch(
     num_instances: str,
     keypair: str,
     instance_type: str,
+    instance_profile: str,
     no_clip: bool,
     profile: str,
     region: str,
@@ -89,23 +86,12 @@ def launch(
     iam_client = get_boto3_client(region=region, profile=profile, service="iam")
     ec2_resource = get_boto3_resource(region=region, profile=profile, service="ec2")
 
-    style = style_from_dict(
-        {
-            Token.QuestionMark: "#E91E63 bold",
-            Token.Selected: "#673AB7 bold",
-            Token.Instruction: "",
-            Token.Answer: "#2196f3 bold",
-            Token.Question: "",
-        }
-    )
-
     keypairs = get_key_pairs(ec2_client=ec2_client)
 
     if not (num_instances and keypair and instance_type):
-
         questions = [
             {
-                "type": "rawlist",
+                "type": "list",
                 "name": "os_type",
                 "message": "What type of OS?",
                 "choices": ["Windows", "Linux"],
@@ -114,23 +100,29 @@ def launch(
                 "type": "input",
                 "name": "num_instances",
                 "message": "How many instances?",
-                "validate": NumberValidator,
+                "validate": NumberValidator(),
                 "filter": lambda val: int(val),
             },
             {
-                "type": "rawlist",
+                "type": "list",
                 "name": "keypair",
                 "message": "Keypair",
                 "choices": keypairs + ["None"],
             },
+            {
+                "type": "input",
+                "name": "instance_profile",
+                "message": "Pre-defined instance profile (leave blank to auto-create one for Session Manager)",
+                "when": lambda result: result["keypair"] == "None",
+            },
             {"type": "input", "name": "instance_type", "message": "Instance Type"},
         ]
-        answers = prompt(questions, style=style)
+        answers = prompt(questions)
         launch_template = get_latest_launch_template(
             os_type=answers["os_type"], ec2_client=ec2_client
         )
 
-        if len(answers) > 0:
+        if answers:
             logger.info(
                 "Provisioning secure EC2 instance with the selected configuration"
             )
@@ -141,6 +133,7 @@ def launch(
                 num_instances=answers["num_instances"],
                 keypair=answers["keypair"],
                 instance_type=answers["instance_type"],
+                instance_profile=answers.get("instance_profile") or None,
                 ec2_client=ec2_client,
                 iam_client=iam_client,
                 ec2_resource=ec2_resource,
@@ -151,7 +144,6 @@ def launch(
             sys.exit(0)
         sys.exit(1)
     else:
-
         logger.info("Provisioning secure EC2 instance with the selected configuration")
         print("Provisioning secure EC2 instance with the selected configuration")
 
@@ -163,6 +155,7 @@ def launch(
             num_instances=num_instances,
             keypair=keypair,
             instance_type=instance_type,
+            instance_profile=instance_profile,
             ec2_client=ec2_client,
             iam_client=iam_client,
             ec2_resource=ec2_resource,
