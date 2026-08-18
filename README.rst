@@ -73,10 +73,8 @@ Usage & Installation
 
     § secure_ec2 config
 
-      ? What type of OS?
-      1) Windows
-      2) Linux
-      Answer: 1
+      ? What type of OS? Linux
+      ? Instance Metadata Service (IMDS) configuration? Enforce IMDSv2 only (recommended, secure by default)
 
 The first thing that `secure_ec2` does is to create a persistent launch configuration per operating system. The current operating systems supported are Windows and Linux, and updates to the launch configuration are being made per operating system.
 `secure_ec2` will later on look for the launch template to launch your instances, but you can also use these templates to launch instances yourself later on.
@@ -85,6 +83,7 @@ In the configuration phase, the following steps are done behind the scenes:
 * Look for the default VPC and public subnet on the selected operating region.
 * Provision a security group, with open ingress to the computer public IP according to the selected operating system port for future use.
 * Provision a launch template that utilize the VPC, subnet and security group settings
+* Enforce IMDSv2 (``HttpTokens=required``) on the launch template by default. You can allow legacy IMDSv1 (``--imds v1v2``) or disable IMDS entirely (``--imds disabled``) when no instance role is needed.
 
 **Instance Provisioning**
 
@@ -125,9 +124,11 @@ Example for launching a Windows instance with Session Manager access:
   Configuration Parameter      Type     Required     Description
 ===========================  ======== ============ ===========================================================
 -t --os_type                 str      True         Operating system (Linux / Windows)
+-m --imds                    str      False        IMDS mode: v2 (enforce IMDSv2, default), v1v2, disabled
 -n --num_instances           int      True         Number of instances to provision securely
 -k --keypair                 str      True         Keypair name to launch the instance with
 -i --instance_type           str      True         Instance type, affects compute & networking performance
+-ip --instance_profile       str      False        Pre-defined IAM instance profile to attach (SSM launches)
 -nc --no_clip                bool     False        Instruct the tool to not copy the SSM url to the clipboard
 -p --profile                 str      False        AWS profile name to use
 -r --region                  str      False        AWS region to use
@@ -138,6 +139,8 @@ Features
 
 * Provision EC2 instance with keypair securely
 * Provision EC2 instance without keypair (Session Manager access) securely
+* Enforce IMDSv2 on generated launch templates by default (opt into legacy IMDSv1 or disable IMDS)
+* Attach a pre-defined IAM instance profile at launch time instead of creating one
 
 
 Demo
