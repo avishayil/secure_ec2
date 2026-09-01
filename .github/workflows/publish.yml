@@ -44,4 +44,4 @@ jobs:
       - name: Publish distribution 📦 to PyPI
         # Pinned to a release tag; authenticates via OIDC Trusted Publishing
         # (no long-lived PYPI_API_TOKEN required).
-        uses: pypa/gh-action-pypi-publish@release/v1.12
+        uses: pypa/gh-action-pypi-publish@release/v1.14
